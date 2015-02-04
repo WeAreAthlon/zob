@@ -1,2 +1,7 @@
 # zob
-ORM on steroids.
+
+PHP Database ORM engine on steroids.
+
+## Requirements
+
+* _TODO_
