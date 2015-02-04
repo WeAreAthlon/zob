@@ -36,33 +36,29 @@ class Builder
             };
 
             case 'insert': {
-                $statements = ['statement', 'values'];
+                $statements = ['statement'];
                 break;
             };
 
             case 'delete': {
-                $statements = ['statement', 'where', 'order', 'limit'];
+                $statements = ['statement', 'from', 'where', 'order', 'limit'];
                 break;
             };
 
             case 'update': {
-                $statements = ['statement', 'set', 'where', 'order', 'limit'];
-                break;
-            };
-
-            case 'create': {
+                $statements = ['statement', 'where', 'order', 'limit'];
                 break;
             };
         }
 
         foreach($statements as $statement) {
-            $ref = new ReflectionClass("Zob\Adapters\MySql\{$statement}");
-            $st = $reflector->newInstanceArgs($query->$statement);
-            list($s, $p) = $st->toSql();
-            $sql[] = $s;
+            if($query->$statement) {
+                list($s, $p) = $query->$statement->toSql();
+                $sql[] = $s;
 
-            if($p) {
-                $params = array_merge($params, $p);
+                if($p) {
+                    $params = array_merge($params, $p);
+                }
             }
         }
 

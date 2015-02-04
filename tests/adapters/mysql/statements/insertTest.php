@@ -15,6 +15,11 @@ class InsertTest extends PHPUnit_Framework_TestCase
         list($sql, $vars) = $insert->toSql();
         $this->assertEquals('INSERT INTO users (name, email, phone) VALUES (?, ?, ?)', $sql);
         $this->assertEquals(['test', 'test@test.com', '123123123'], $vars);
+
+        $insert = new Insert('users', ['name' => 'test', 'email' => 'test@test.com', 'phone' => '123123123']);
+        list($sql, $vars) = $insert->toSql();
+        $this->assertEquals('INSERT INTO users (name, email, phone) VALUES (?, ?, ?)', $sql);
+        $this->assertEquals(['test', 'test@test.com', '123123123'], $vars);
     }
 
     /**

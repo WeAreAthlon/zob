@@ -1,6 +1,6 @@
 <?php
 /**
- * MySql insert statement.
+ * MySql update statement.
  *
  * @package    Zob
  * @subpackage Adapters\MySql\Statements
@@ -11,16 +11,15 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
-class Insert
+class Update
 {
-    private $into,
+    private $table,
             $fields,
             $values;
 
-    function __construct($into, $fields = [], $values = [])
+    function __construct($table, $fields = [], $values = [])
     {
-        $this->into = $into;
-
+        $this->table = $table;
         if((bool)count(array_filter(array_keys($fields), 'is_string'))) {
             $values = array_values($fields);
             $fields = array_keys($fields);
@@ -35,10 +34,8 @@ class Insert
             throw new \UnexpectedValueException("The number of values doesn't match the number of fields");
         }
 
-        $r = ["INSERT INTO {$this->into}"];
-        $f = implode(', ', $this->fields);
-        $v = implode(', ', array_map(function() { return '?'; }, $this->values));
-        $r[] = "({$f}) VALUES ({$v})";
+        $r = ["UPDATE {$this->table} SET"];
+        $r[] = implode(', ', array_map(function($item) { return "{$item} = ?"; }, $this->fields));
 
         return [implode(' ', $r), $this->values];
     }
