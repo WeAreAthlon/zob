@@ -19,11 +19,19 @@ class MySql extends \PDO
     private $builder;
     private $transactionRunnig = false;
     private $rollbackTransaction = false;
+    private $db;
 
     public function __construct(array $dsn)
     {
+        $connString = "mysql:host={$dsn['host']};";
+
+        if($dsn['name']) {
+            $this->db = $dsn['name'];
+            $connString .= "dbname={$dsn['name']}";
+        }
+
         parent::__construct(
-            'mysql:host=' . $dsn['host'] . ';dbname=' . $dsn['name'],
+            $connString,
             $dsn['user'],
             $dsn['password']
         );
@@ -38,10 +46,85 @@ class MySql extends \PDO
         }
     }
 
-    public function query($query)
+    public function createDatabase($databaseName, $charSet, $collation)
     {
-        list($sql, $params) = $this->builder->queryString($query);
+        $sql = $this->builder->creteDatabase($databaseName, $charSet, $collation);
 
+        $this->execute($sql);
+    }
+
+    public function deleteDatabase($databaseName)
+    {
+        $sql = $this->builder->deleteDatabase($databaseName);
+
+        $this->execute($sql);
+    }
+
+    public function getTable($table)
+    {
+        $sql = $this->builder->getTable($table);
+
+        $this->query($sql);
+    }
+
+    public function createTable($table)
+    {
+        $sql = $this->builder->createTable($table);
+
+        $this->execute($sql);
+    }
+
+    public function deleteTable($tableName)
+    {
+        $sql = $this->builder->deleteTable($tableName);
+
+        $this->execute($sql);
+    }
+
+    public function createField($tableName, $field)
+    {
+        $sql = $this->builder->createField($tableName, $field);
+
+        $this->execute($sql);
+    }
+
+    public function changeField($tableName, $fieldName, $field)
+    {
+        $sql = $this->builder->changeField($tableName, $fieldName, $field);
+
+        $this->execute($sql);
+    }
+
+    public function deleteField($tableName, $fieldName)
+    {
+        $sql = $this->builder->deleteField($tableName, $fieldName);
+
+        $this->execute($sql);
+    }
+
+    public function createIndex($tableName, $index)
+    {
+        $sql = $this->builder->createIndex($tableName, $index);
+
+        $this->execute($sql);
+    }
+
+    public function deleteIndex($tableName, $indexName)
+    {
+        $sql = $this->builder->deleteIndex($tableName, $indexName);
+
+        $this->execute($sql);
+    }
+
+    public function run($query)
+    {
+        list($sql, $params) = $this->builder->buildQuery($query);
+
+        return $this->query($sql, $params);
+    }
+
+    public function query($sql, $params = [])
+    {
         if (count($params) > 0) {
             $stmt = $this->prepare($sql);
             $stmt->execute($params);
@@ -60,9 +143,19 @@ class MySql extends \PDO
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function execute($query)
+    public function execute($sql, $params = [])
     {
-    
+        if (count($params) > 0) {
+            $stmt = $this->prepare($sql);
+            $result = $stmt->execute($params);
+        } else {
+            $result = $this->exec($sql);
+        }
+
+        var_dump($sql);
+        var_dump($result);
+
+        return $result;
     }
 
     public function transaction(callable $scope)
@@ -83,7 +176,7 @@ class MySql extends \PDO
             }
 
             $this->rollbackTransaction = false;
-            return parent::rollback(); 
+            return parent::rollback();
         }
 
         return true;

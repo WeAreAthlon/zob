@@ -129,7 +129,7 @@ class Query implements \ArrayAccess, \Countable, \Iterator
 
     public function run()
     {
-        $this->items = $this->connection->query($this);
+        $this->items = $this->connection->run($this);
 
         return $this->items;
     }

@@ -25,7 +25,7 @@ class Builder
         return $ref->newInstanceArgs(array_slice(func_get_args(), 1));
     }
 
-    public function build($query)
+    public function buildQuery($query)
     {
         $sql = []; $params = [];
 
@@ -63,6 +63,100 @@ class Builder
         }
 
         return [implode(' ', $sql), $params];
+    }
+
+    public function createDatabase($name, $charSet, $collation)
+    {
+        return "CREATE database {$name} CHARACTER SET = {$charSet} COLLATE = {$collation}";
+    }
+
+    public function deleteDatabase($name)
+    {
+        return "DROP DATABASE {$name}";
+    }
+
+    public function getTable($name)
+    {
+        return "DESCRIBE {$name}";
+    }
+
+    public function createTable($table)
+    {
+        $fields = implode(',', array_map(function($item) { return $this->buildField($item); }, $table->fields));
+
+        return "CREATE TABLE {$table->name} ({$fields})";
+    }
+
+    public function deleteTable($name)
+    {
+        return "DROP TABLE {$name}";
+    }
+
+    public function createField($tableName, $field)
+    {
+        $fieldSql = $this->buildField($field);
+
+        return "ALTER TABLE {$tableName} ADD COLUMN {$fieldSql}";
+    }
+
+    public function changeField($tableName, $fieldName, $field)
+    {
+        $fieldSql = $this->buildField($field);
+
+        return "ALTER TABLE {$tableName} CHANGE COLUMN {$fieldName} {$fieldSql}";
+    }
+
+    public function deleteField($tableName, $fieldName)
+    {
+        return "ALTER TABLE {$tableName} DROP COLUMN {$fieldName}";
+    }
+
+    public function createIndex($tableName, $index)
+    {
+        $indexSql = $this->buildIndex($index);
+
+        return "ALTER TABLE {$tableName} ADD INDEX {$indexSql}";
+    }
+
+    public function deleteIndex($tableName, $indexName)
+    {
+        return "ALTER TABLE {$tableName} DROP INDEX {$indexName}";
+    }
+
+    private function buildField($field)
+    {
+        $p = [$field->name];
+
+        $p[] = "{$field->type}" . ($field->length ? "({$field->length})" : '');
+        $p[] = $field->required ? 'NOT NULL' : 'NULL';
+
+        if($field->default) {
+            $p[] = $field->default;
+        }
+
+        if($field->ai) {
+            $p[] = 'AUTO_INCREMENT';
+        }
+
+        if($field->pk) {
+            $p[] = 'PRIMARY KEY';
+        }
+
+        return implode(' ', $p);
+    }
+
+    private function buildIndex($index)
+    {
+        $p = [$index->name];
+        $p[] = "USING {$index->type}";
+
+        if(is_array($index->on)) {
+            $p[] = implode(',', $idnex->on);
+        } else {
+            $p[] = $index->on . ($index->length ? "({$index->length})" : '');
+        }
+
+        return implode(' ', $p);
     }
 }
 
