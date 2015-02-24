@@ -19,7 +19,7 @@ class Table
            $fields = [],
            $indexes = [];
 
-    function __construct($connection, $name, $definition = [])
+    function __construct($connection, $name, $definition = [], $indexes = [])
     {
         $this->connection = $connection;
         $this->name = $name;
@@ -31,11 +31,21 @@ class Table
 
             $this->fields[$value->name] = $value;
         }
+
+        foreach($indexes as $value) {
+            if(!($value instanceof Index)) {
+                $value = new Index($value);
+            }
+
+            $this->indexes[$value->name] = $value;
+        }
     }
 
     public static function get($connection, $name)
     {
-        $r = $connection->getTable($name);
+        $table = $connection->getTable($name);
+
+        return new Table($connection, $name, $table['fields'], $table['indexes']);
     }
 
     public function create()

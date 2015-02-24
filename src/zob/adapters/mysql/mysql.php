@@ -25,7 +25,7 @@ class MySql extends \PDO
     {
         $connString = "mysql:host={$dsn['host']};";
 
-        if($dsn['name']) {
+        if(isset($dsn['name'])) {
             $this->db = $dsn['name'];
             $connString .= "dbname={$dsn['name']}";
         }
@@ -46,9 +46,14 @@ class MySql extends \PDO
         }
     }
 
+    public function databaseExists($name)
+    {
+        return parent::query("SHOW DATABASES LIKE '{$name}'")->rowCount() > 0;
+    }
+
     public function createDatabase($databaseName, $charSet, $collation)
     {
-        $sql = $this->builder->creteDatabase($databaseName, $charSet, $collation);
+        $sql = $this->builder->createDatabase($databaseName, $charSet, $collation);
 
         $this->execute($sql);
     }
@@ -60,11 +65,39 @@ class MySql extends \PDO
         $this->execute($sql);
     }
 
+    public function tableExists($name)
+    {
+        return parent::query("SHOW TABLES LIKE '{$name}'")->rowCount() > 0;
+    }
+
     public function getTable($table)
     {
-        $sql = $this->builder->getTable($table);
+        $fields = $this->query($this->builder->getTable($table));
+        $indexes = $this->query($this->builder->getIndexes($table));
 
-        $this->query($sql);
+        return [
+            'fields' => array_map(function($item) {
+                preg_match('/(\w+)\((\d+)\)/', $item['Type'], $type);
+                return [
+                    'name'      => $item['Field'],
+                    'type'      => $type[1],
+                    'length'    => $type[2],
+                    'required'  => $item['Null'] == 'NO',
+                    'default'   => $item['Default'],
+                    'pk'        => !!($item['Key'] == 'PRI'),
+                    'ai'        => !!($item['Extra'] == 'auto_increment')
+                ];
+            }, $fields),
+            'indexes' => array_map(function($item) {
+                return [
+                    'name'      => $item['Key_name'],
+                    'field'     => $item['Column_name'],
+                    'type'      => $item['Index_type'],
+                    'unique'    => !$item['Non_unique'],
+                    'length'    => $item['Sub_part']
+                ];
+            }, $indexes)
+        ];
     }
 
     public function createTable($table)
@@ -151,9 +184,6 @@ class MySql extends \PDO
         } else {
             $result = $this->exec($sql);
         }
-
-        var_dump($sql);
-        var_dump($result);
 
         return $result;
     }

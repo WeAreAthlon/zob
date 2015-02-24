@@ -111,11 +111,16 @@ class Builder
         return "ALTER TABLE {$tableName} DROP COLUMN {$fieldName}";
     }
 
+    public function getIndexes($name)
+    {
+        return "SHOW INDEXES IN {$name} WHERE Key_name != 'PRIMARY'";
+    }
+
     public function createIndex($tableName, $index)
     {
         $indexSql = $this->buildIndex($index);
 
-        return "ALTER TABLE {$tableName} ADD INDEX {$indexSql}";
+        return "ALTER TABLE {$tableName} ADD" . ($index->unique ? ' UNIQUE': '') . " INDEX {$indexSql}";
     }
 
     public function deleteIndex($tableName, $indexName)
@@ -150,10 +155,10 @@ class Builder
         $p = [$index->name];
         $p[] = "USING {$index->type}";
 
-        if(is_array($index->on)) {
-            $p[] = implode(',', $idnex->on);
+        if(is_array($index->field)) {
+            $p[] = implode(',', $idnex->field);
         } else {
-            $p[] = $index->on . ($index->length ? "({$index->length})" : '');
+            $p[] = '(' . $index->field . ($index->length ? "({$index->length})" : '') . ')';
         }
 
         return implode(' ', $p);

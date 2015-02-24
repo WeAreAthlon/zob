@@ -13,7 +13,6 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
     {
         self::$connection = new MySql([
             'host' => 'localhost',
-            'name' => 'silla_test',
             'user' => 'root',
             'password' => ''
         ]);
@@ -26,6 +25,8 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
     {
         $db = new Database(self::$connection, 'test');
         $db->create();
+
+        $this->assertTrue(self::$connection->databaseExists('test'));
     }
 
     /**
@@ -35,6 +36,8 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
     {
         $db = new Database(self::$connection, 'test');
         $db->delete();
+
+        $this->assertFalse(self::$connection->databaseExists('test'));
     }
 }
 

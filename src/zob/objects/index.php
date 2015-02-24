@@ -14,14 +14,17 @@ namespace Zob\Objects;
 class Index
 {
     public $name,
-           $type,
+           $field,
+           $type = 'BTREE',
+           $unique = false,
            $length;
 
-    public function __construct($name, $type = null, $length = null)
+    public function __construct(array $options)
     {
-        $this->name = $name;
-        $this->type = $type;
-        $this->length = $length;
+        foreach($options as $key=>$option)
+        {
+            $this->{$key} = $option;
+        }
     }
 }
 

@@ -27,6 +27,10 @@ class Field
         {
             $this->{$key} = $option;
         }
+
+        if($this->pk) {
+            $this->required = true;
+        }
     }
 
     public function validate($value)
