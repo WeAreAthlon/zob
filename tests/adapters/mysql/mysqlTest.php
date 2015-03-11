@@ -433,7 +433,65 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     {
         self::$connection->transaction(function() {
             /*@TODO execute queries */
+            self::$connection->run([
+                'statement'     => new Statements\Delete(self::$users->name),
+                'where'         => new Statements\Where(['email' => 'user2@test.com'])
+            ]);
+
+            self::$connection->run([
+                'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
+                'where'         => new Statements\Where(['email' => 'user5@test.com']),
+            ]);
         });
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
+        );
+
+        $this->assertEquals(0, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5updated@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+    }
+
+    /**
+     * @covers Zob\Adapters\MySql\MySql::transaction
+     */
+    public function testTransactionWithException()
+    {
+        self::$connection->transaction(function() {
+            /*@TODO execute queries */
+            self::$connection->run([
+                'statement'     => new Statements\Delete(self::$users->name),
+                'where'         => new Statements\Where(['email' => 'user2@test.com'])
+            ]);
+
+            self::$connection->run([
+                'statement'     => new Statements\Update(self::$users->name, ['email' => '']),
+                'where'         => new Statements\Where(['email' => 'user5@test.com'])
+            ]);
+        });
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = ''"
+        );
+
+        $this->assertEquals(0, $queryTable->getRowCount());
     }
 
     /**
@@ -443,11 +501,31 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     {
         self::$connection->transaction(function() {
             /*@TODO execute queries */
+            self::$connection->run([
+                'statement'     => new Statements\Delete(self::$users->name),
+                'where'         => new Statements\Where(['email' => 'user2@test.com'])
+            ]);
 
             self::$connection->transaction(function() {
                 /*@TODO execute queries */
+                self::$connection->run([
+                    'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
+                    'where'         => new Statements\Where(['email' => 'user5@test.com']),
+                ]);
             });
         });
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
+        );
+
+        $this->assertEquals(0, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5updated@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
     }
 
     /**
@@ -458,8 +536,36 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
         self::$connection->transaction(function() {
             /*@TODO execute queries */
 
+            self::$connection->run([
+                'statement'     => new Statements\Delete(self::$users->name),
+                'where'         => new Statements\Where(['email' => 'user2@test.com'])
+            ]);
+
             self::$connection->rollback();
+
+            self::$connection->run([
+                'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
+                'where'         => new Statements\Where(['email' => 'user5@test.com']),
+            ]);
         });
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5updated@test.com'"
+        );
+
+        $this->assertEquals(0, $queryTable->getRowCount());
     }
 
     /**
@@ -469,15 +575,41 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     {
         self::$connection->transaction(function() {
             /*@TODO execute queries */
+            self::$connection->run([
+                'statement'     => new Statements\Delete(self::$users->name),
+                'where'         => new Statements\Where(['email' => 'user2@test.com'])
+            ]);
 
             self::$connection->transaction(function() {
                 /*@TODO execute queries */
+                self::$connection->run([
+                    'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
+                    'where'         => new Statements\Where(['email' => 'user5@test.com']),
+                ]);
 
                 self::$connection->rollback();
             });
 
             self::$connection->rollback();
         });
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5@test.com'"
+        );
+
+        $this->assertEquals(1, $queryTable->getRowCount());
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE email = 'user5updated@test.com'"
+        );
+
+        $this->assertEquals(0, $queryTable->getRowCount());
     }
 }
 

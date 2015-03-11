@@ -40,7 +40,7 @@ class TableTest extends PHPUnit_Framework_TestCase
      * @covers Zob\Objects\Table::create
      * @covers Zob\Objects\Table::get
      */
-    public function testCreate()
+    public function testTableCreation()
     {
         self::$table->create();
         $table = Table::get(self::$connection, 'users');
@@ -51,7 +51,7 @@ class TableTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Zob\Objects\Table::addField
      * @covers Zob\Objects\Table::get
-     * @depends testCreate
+     * @depends testTableCreation
      */
     public function testAddField()
     {
@@ -104,7 +104,7 @@ class TableTest extends PHPUnit_Framework_TestCase
     /**
      * @covers Zob\Objects\Table::addIndex
      * @covers Zob\Objects\Table::get
-     * @depends testCreate
+     * @depends testTableCreation
      */
     public function testAddIndex()
     {
@@ -153,7 +153,7 @@ class TableTest extends PHPUnit_Framework_TestCase
 
     /**
      * @covers Zob\Objects\Table::delete
-     * @depends testCreate
+     * @depends testTableCreation
      */
     public function testDelete()
     {

@@ -213,8 +213,9 @@ class MySql extends \PDO implements iAdapter
 
         try {
             $scope();
-        } catch(\PDOException $e) {
+        } catch(\Exception $e) {
             $this->rollbackTransaction = false;
+            $this->transactionRunning = false;
             return parent::rollback();
         }
 
