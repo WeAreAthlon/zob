@@ -13,10 +13,12 @@ namespace Zob\Adapters\MySql\Statements;
 
 class Delete
 {
-    private $ignore;
+    private $table,
+            $ignore;
 
-    function __construct($ignore = false)
+    function __construct($table, $ignore = false)
     {
+        $this->table = $table;
         $this->ignore = $ignore;
     }
 
@@ -24,11 +26,13 @@ class Delete
     {
         $r = ['DELETE'];
 
-        if($this->ingore) {
+        if($this->ignore) {
             $r[] = 'IGNORE';
         }
 
-        return [implode(' ', $r)];
+        $r[] = "FROM {$this->table}";
+
+        return [implode(' ', $r), []];
     }
 }
 

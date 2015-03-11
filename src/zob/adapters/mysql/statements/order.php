@@ -45,7 +45,7 @@ class Order
 
         $fields = implode(', ', $r);
 
-        return ["ORDER BY {$fields}"];
+        return ["ORDER BY {$fields}", []];
     }
 }
 

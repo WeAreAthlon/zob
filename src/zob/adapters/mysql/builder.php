@@ -25,35 +25,36 @@ class Builder
         return $ref->newInstanceArgs(array_slice(func_get_args(), 1));
     }
 
-    public function buildQuery($query)
+    public function buildQuery(array $options)
     {
         $sql = []; $params = [];
 
-        switch($query->statement) {
-            case 'select': {
+        $ref = new \ReflectionClass(get_class($options['statement']));
+        switch($ref->getShortName()) {
+            case 'Select': {
                 $statements = ['statement', 'from', 'join', 'where', 'group', 'having', 'order', 'limit'];
                 break;
             };
 
-            case 'insert': {
+            case 'Insert': {
                 $statements = ['statement'];
                 break;
             };
 
-            case 'delete': {
+            case 'Delete': {
                 $statements = ['statement', 'from', 'where', 'order', 'limit'];
                 break;
             };
 
-            case 'update': {
+            case 'Update': {
                 $statements = ['statement', 'where', 'order', 'limit'];
                 break;
             };
         }
 
         foreach($statements as $statement) {
-            if($query->$statement) {
-                list($s, $p) = $query->$statement->toSql();
+            if(isset($options[$statement])) {
+                list($s, $p) = $options[$statement]->toSql();
                 $sql[] = $s;
 
                 if($p) {

@@ -41,7 +41,7 @@ class Select
 
         $r[] = $fields;
 
-        return [implode(' ', $r)];
+        return [implode(' ', $r), []];
     }
 }
 

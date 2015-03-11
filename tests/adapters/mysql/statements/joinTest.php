@@ -13,7 +13,7 @@ class JoinTest extends PHPUnit_Framework_TestCase
     {
         $join = new Join('users', 'tasks.id = users.id');
         list($sql) = $join->toSql();
-        $this->assertEquals('LEFT OUTER JOIN users ON(tasks.id = users.id)', $sql);
+        $this->assertEquals('LEFT JOIN users ON(tasks.id = users.id)', $sql);
     }
 }
 

@@ -11,10 +11,12 @@
 
 namespace Zob\Adapters\MySql;
 
+use Zob\Adapters\iAdapter;
+
 /**
  * Database management driver wrapping PDO_MYSQL extension.
  */
-class MySql extends \PDO
+class MySql extends \PDO implements iAdapter
 {
     private $builder;
     private $transactionRunnig = false;
@@ -104,85 +106,98 @@ class MySql extends \PDO
     {
         $sql = $this->builder->createTable($table);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function deleteTable($tableName)
     {
         $sql = $this->builder->deleteTable($tableName);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function createField($tableName, $field)
     {
         $sql = $this->builder->createField($tableName, $field);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function changeField($tableName, $fieldName, $field)
     {
         $sql = $this->builder->changeField($tableName, $fieldName, $field);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function deleteField($tableName, $fieldName)
     {
         $sql = $this->builder->deleteField($tableName, $fieldName);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function createIndex($tableName, $index)
     {
         $sql = $this->builder->createIndex($tableName, $index);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
     public function deleteIndex($tableName, $indexName)
     {
         $sql = $this->builder->deleteIndex($tableName, $indexName);
 
-        $this->execute($sql);
+        return $this->execute($sql);
     }
 
-    public function run($query)
+    public function run($options)
     {
-        list($sql, $params) = $this->builder->buildQuery($query);
+        list($sql, $params) = $this->builder->buildQuery($options);
 
         return $this->query($sql, $params);
     }
 
     public function query($sql, $params = [])
     {
-        if (count($params) > 0) {
-            $stmt = $this->prepare($sql);
-            $stmt->execute($params);
-        } else {
-            $stmt = parent::query($sql);
+        $stmt = $this->prepare($sql);
+
+        if(!empty($params)) {
+            foreach($params as $i=>$v) {
+                if($v === '') {
+                    $stmt->bindValue($i+1, null, \PDO::PARAM_NULL);
+                    continue;
+                }
+
+                $stmt->bindValue($i+1, $v, (is_int($v) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
+            }
         }
 
-        if (!$stmt->columnCount()) {
-            if ($stmt->rowCount()) {
-                return true;
+        if($stmt->execute()) {
+            if($stmt->columnCount()) {
+                return $stmt->fetchAll(\PDO::FETCH_ASSOC);
             }
 
-            return false;
+            return true;
         }
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        throw new \DomainException($stmt->errorInfo()[2]);
     }
 
     public function execute($sql, $params = [])
     {
-        if (count($params) > 0) {
-            $stmt = $this->prepare($sql);
-            $result = $stmt->execute($params);
-        } else {
-            $result = $this->exec($sql);
+        $stmt = $this->prepare($sql);
+
+        if(!empty($params)) {
+            foreach($params as $i=>$v) {
+                $stmt->bindValue($i+1, $v, (is_int($v) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
+            }
+        }
+
+        $result = $stmt->execute();
+
+        if(!$result) {
+            throw new \DomainException($stmt->errorInfo()[2]);
         }
 
         return $result;
@@ -196,7 +211,12 @@ class MySql extends \PDO
             parent::beginTransaction();
         }
 
-        $scope();
+        try {
+            $scope();
+        } catch(\PDOException $e) {
+            $this->rollbackTransaction = false;
+            return parent::rollback();
+        }
 
         if(!$initialState) {
             $this->transactionRunning = false;

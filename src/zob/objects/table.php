@@ -64,15 +64,16 @@ class Table
             $definition = new Field($definition);
         }
 
-        $this->connection->createField($this->name, $definition);
-        $this->fields[$definition->name] = $definition;
+        if($this->connection->createField($this->name, $definition)) {
+            $this->fields[$definition->name] = $definition;
+        }
     }
 
     public function deleteField($name)
     {
-        $this->connection->deleteField($this->name, $name);
-
-        unset($this->fields[$name]);
+        if($this->connection->deleteField($this->name, $name)) {
+            unset($this->fields[$name]);
+        }
     }
 
     public function changeField($name, $definition)
@@ -81,8 +82,9 @@ class Table
             $definition = new Field($definition);
         }
 
-        $this->connection->changeField($this->name, $name, $definition);
-        $this->fields[$name] = $definition;
+        if($this->connection->changeField($this->name, $name, $definition)) {
+            $this->fields[$name] = $definition;
+        }
     }
 
     public function addIndex($definition)
@@ -91,15 +93,16 @@ class Table
             $definition = new Index($definition);
         }
 
-        $this->connection->createIndex($this->name, $definition);
-        $this->indexes[$definition->name] = $definition;
+        if($this->connection->createIndex($this->name, $definition)) {
+            $this->indexes[$definition->name] = $definition;
+        }
     }
 
     public function deleteIndex($name)
     {
-        $this->connection->deleteIndex($this->name, $name);
-
-        unset($this->indexes[$name]);
+        if($this->connection->deleteIndex($this->name, $name)) {
+            unset($this->indexes[$name]);
+        }
     }
 
     public function changeIndex($name, $definition)

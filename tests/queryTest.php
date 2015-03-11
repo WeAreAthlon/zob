@@ -30,7 +30,7 @@ class QueryTest extends PHPUnit_Framework_TestCase
     public function testSelect()
     {
         $this->query->select();
-        
+
         $this->assertEquals(self::$connection->builder->create('select'), $this->query->statement);
     }
 
@@ -72,7 +72,7 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->query->order('start_time', 'asc');
         $order->add('start_time', 'asc');
         $this->assertEquals($order, $this->query->order);
-        $this->assertEquals(['ORDER BY id asc, start_time asc'], $this->query->order->toSql());
+        $this->assertEquals('ORDER BY id asc, start_time asc', $this->query->order->toSql()[0]);
     }
 
     /**
@@ -118,7 +118,7 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $select = self::$connection->builder->create('select', 'id, category');
         $select->uniq(true);
         $this->assertEquals($select, $this->query->statement);
-        $this->assertEquals(['SELECT DISTINCT id, category'], $this->query->statement->toSql());
+        $this->assertEquals('SELECT DISTINCT id, category', $this->query->statement->toSql()[0]);
     }
 
     /**

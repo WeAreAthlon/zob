@@ -13,17 +13,16 @@ namespace Zob\Adapters\MySql\Statements;
 
 class Join
 {
-    private $type = 'LEFT OUTER';
-
-    function __construct($with, $on)
+    function __construct($with, $on, $type = 'LEFT')
     {
         $this->with = $with;
         $this->on = $on;
+        $this->type = $type;
     }
 
     public function toSql()
     {
-        return ["{$this->type} JOIN {$this->with} ON({$this->on})"];
+        return ["{$this->type} JOIN {$this->with} ON({$this->on})", []];
     }
 }
 
