@@ -11,17 +11,49 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+/**
+ * Delete statement class
+ */
 class Delete
 {
-    private $table,
-            $ignore;
+    /**
+     * Table name
+     *
+     * @var string
+     *
+     * @access private
+     */
+    private $table;
 
+    /**
+     * Ignore errors if the record doesn't exists
+     *
+     * @var string
+     * @access private
+     */
+    private $ignore;
+
+    /**
+     * Basic constructor
+     *
+     * @param string $table Table name
+     * @param bool $ignore Ignore errors
+     *
+     * @access public
+     */
     function __construct($table, $ignore = false)
     {
         $this->table = $table;
         $this->ignore = $ignore;
     }
 
+    /**
+     * Build a SQL for the statement
+     *
+     * @access public
+     *
+     * @return string
+     */
     public function toSql()
     {
         $r = ['DELETE'];

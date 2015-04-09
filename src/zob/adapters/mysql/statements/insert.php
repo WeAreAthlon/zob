@@ -11,12 +11,47 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+/**
+ * Insert statement class
+ */
 class Insert
 {
-    private $into,
-            $fields,
-            $values;
+    /**
+     * Table name to insert into
+     *
+     * @var string
+     *
+     * @access private
+     */
+    private $into;
 
+    /**
+     * Which fields to set
+     *
+     * @var array
+     *
+     * @access private
+     */
+    private $fields;
+
+    /**
+     * Values to be inserted
+     *
+     * @var array
+     *
+     * @access private
+     */
+    private $values;
+
+    /**
+     * Basic constructor
+     *
+     * @param string $into Table name
+     * @param array $fields List of fields
+     * @param array $values List of values
+     *
+     * @access public
+     */
     function __construct($into, $fields = [], $values = [])
     {
         $this->into = $into;
@@ -29,6 +64,14 @@ class Insert
         $this->values = $values;
     }
 
+    /**
+     * Build a SQL for the statement
+     * Throws an UnexpectedValueException if the fields and values aren't with the same length
+     *
+     * @access public
+     *
+     * @return array($sql, $bindParams)
+     */
     public function toSql()
     {
         if(count($this->fields) !== count($this->values)) {

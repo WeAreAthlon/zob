@@ -327,7 +327,7 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
 
     /**
      * @covers Zob\Adapters\MySql\MySql::run
-     * @expectedException DomainException
+     * @expectedException LogicException
      */
     public function testRecordInsertionWithMissingRequiredFeld()
     {
@@ -383,7 +383,7 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
 
     /**
      * @covers Zob\Adapters\MySql\MySql::run
-     * @expectedException DomainException
+     * @expectedException LogicException
      */
     public function testRecordUpdateWithMissingRequiredFeld()
     {

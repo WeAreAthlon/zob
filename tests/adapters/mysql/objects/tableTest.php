@@ -49,6 +49,16 @@ class TableTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Zob\Objects\Table::create
+     * @covers Zob\Objects\Table::get
+     * @expectedException LogicException
+     */
+    public function testTableCreationOfExistingTable()
+    {
+        self::$table->create();
+    }
+
+    /**
      * @covers Zob\Objects\Table::addField
      * @covers Zob\Objects\Table::get
      * @depends testTableCreation
@@ -66,6 +76,24 @@ class TableTest extends PHPUnit_Framework_TestCase
 
         $table = Table::get(self::$connection, 'users');
         $this->assertEquals(self::$table, $table);
+    }
+
+    /**
+     * @covers Zob\Objects\Table::addField
+     * @covers Zob\Objects\Table::get
+     * @depends testAddField
+     * @expectedException LogicException
+     */
+    public function testAddDuplicateField()
+    {
+        $field = [
+            'name' => 'email',
+            'type' => 'varchar',
+            'length' => 150,
+            'required' => true
+        ];
+
+        self::$table->addField($field);
     }
 
     /**

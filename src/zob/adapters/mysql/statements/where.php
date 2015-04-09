@@ -11,20 +11,52 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+/**
+ * Where statement class
+ */
 class Where
 {
+    /**
+     * Query options
+     *
+     * @var array
+     * @access private
+     */
     private $options = [];
 
+    /**
+     * Basic constructor
+     *
+     * @param type name info
+     * @access private
+     */
     function __construct($conditions, $vars = [])
     {
         $this->add($conditions, $vars);
     }
 
+    /**
+     * Insert additional query option
+     *
+     * @param array $conditions Query condition
+     * @param array $vars Any values to bind
+     *
+     * @access public
+     *
+     * @return void
+     */
     public function add($conditions, $vars = [])
     {
         $this->options[] = [$conditions, $vars];
     }
 
+    /**
+     * Build SQL for the statement
+     *
+     * @access public
+     *
+     * @return array($sql, $bindParams)
+     */
     public function toSql()
     {
         $r = []; $vars = [];
@@ -59,6 +91,16 @@ class Where
         return ["WHERE {$r}", $vars];
     }
 
+    /**
+     * Parse query condition
+     *
+     * @param string $field Field name
+     * @param array $values List if $key=>$value, where the $key is operator and $value is the actual value
+     *
+     * @access private
+     *
+     * @return array($sql, $bindParams)
+     */
     private function parseCondition($field, $values)
     {
         $r = [];
@@ -72,6 +114,15 @@ class Where
         return [implode(' AND ', $r), $p];
     }
 
+    /**
+     * Parse a string to extract a logic operator
+     *
+     * @param string $param Operator
+     *
+     * @access private
+     *
+     * @return string
+     */
     private function getOperator($param)
     {
         switch($param) {

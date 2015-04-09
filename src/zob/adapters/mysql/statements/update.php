@@ -11,12 +11,44 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+/**
+ * Update statement class
+ */
 class Update
 {
-    private $table,
-            $fields,
-            $values;
+    /**
+     * Table name to update
+     *
+     * @var string
+     * @access private
+     */
+    private $table;
 
+    /**
+     * Fields to update
+     *
+     * @var array
+     * @access private
+     */
+    private $fields;
+
+    /**
+     * Values to insert
+     *
+     * @var array
+     * @access private
+     */
+    private $values;
+
+    /**
+     * Basic constructor
+     *
+     * @param string $table Table name
+     * @param array $fields Fields to update
+     * @param array $values Values to insert
+     *
+     * @access public
+     */
     function __construct($table, $fields = [], $values = [])
     {
         $this->table = $table;
@@ -28,6 +60,13 @@ class Update
         $this->values = $values;
     }
 
+    /**
+     * Build SQL for the statement
+     *
+     * @access public
+     *
+     * @return array($sql, $bindParams)
+     */
     public function toSql()
     {
         if(count($this->fields) !== count($this->values)) {

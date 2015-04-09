@@ -11,21 +11,48 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+/**
+ * Select statement class
+ */
 class Select
 {
+    /**
+     * List of fields to retrieve
+     *
+     * @var string/array
+     * @access private
+     */
     private $fields;
+
+    /**
+     * Whether to retrieve only the unique records
+     *
+     * @var bool
+     * @access private
+     */
     private $uniq = false;
 
-    function __construct($fields = '*')
+    /**
+     * Basic constructor
+     *
+     * @param string/array $fields List of fields
+     * @param bool $uniq Return only unique records
+     *
+     * @access public
+     */
+    function __construct($fields = '*', $uniq)
     {
         $this->fields = $fields;
+        $this->uniq = $uniq;
     }
 
-    public function uniq($value)
-    {
-        $this->uniq = $value;
-    }
-
+    /**
+     * Build a SQL for the statement
+     *
+     * @access public
+     *
+     * @return array($sql, array())
+     */
     public function toSql()
     {
         $r = ['SELECT'];

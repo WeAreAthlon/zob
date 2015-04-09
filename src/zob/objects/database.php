@@ -11,14 +11,53 @@
 
 namespace Zob\Objects;
 
+/**
+ * Object representation of a Database
+ */
 class Database
 {
+    /**
+     * Connection to the DB
+     *
+     * @var Zob\Adapters\Adapter
+     * @access private
+     */
     private $connection;
 
-    public $name,
-           $characterSet,
-           $collation;
+    /**
+     * Database name
+     *
+     * @var string
+     * @access public
+     */
+    public $name;
 
+    /**
+     * Database character set
+     *
+     * @var string
+     * @access public
+     */
+    public $characterSet;
+
+    /**
+     * Database collation
+     *
+     * @var string
+     * @access public
+     */
+    public $collation;
+
+    /**
+     * Basic constructor
+     *
+     * @param Zob\Adapters\Adapter $connection Connection instance
+     * @param string $name Database name
+     * @param string $characterSet Database character set
+     * @param string $collation Database collation
+     *
+     * @access public
+     */
     function __construct($connection, $name, $characterSet = 'utf8', $collation = 'utf8_general_ci')
     {
         $this->connection = $connection;
@@ -27,14 +66,28 @@ class Database
         $this->collation = $collation;
     }
 
+    /**
+     * Create the database
+     *
+     * @access public
+     *
+     * @return bool
+     */
     public function create()
     {
-        $this->connection->createDatabase($this->name, $this->characterSet, $this->collation);
+        return $this->connection->createDatabase($this->name, $this->characterSet, $this->collation);
     }
 
+    /**
+     * Delete the database
+     *
+     * @access public
+     *
+     * @return bool
+     */
     public function delete()
     {
-        $this->connection->deleteDatabase($this->name);
+        return $this->connection->deleteDatabase($this->name);
     }
 }
 
