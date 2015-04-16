@@ -40,10 +40,22 @@ class Select
      *
      * @access public
      */
-    function __construct($fields = '*', $uniq)
+    function __construct($fields = '*', $uniq = false)
     {
         $this->fields = $fields;
         $this->uniq = $uniq;
+    }
+
+    /**
+     * Set the uniq option
+     *
+     * @param bool $value Uniq option
+     *
+     * @access public
+     */
+    public function uniq($value)
+    {
+        $this->uniq = $value;
     }
 
     /**
