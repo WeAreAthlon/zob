@@ -14,63 +14,63 @@ namespace Zob\Objects;
 /**
  * Object representation of a Database field
  */
-class Field
+class Field implements FieldInterface
 {
     /**
      * Field name
      *
      * @var string
-     * @access public
+     * @access protected
      */
-    public $name;
+    protected $name;
 
     /**
      * Field data type
      *
      * @var string
-     * @access public
+     * @access protected
      */
-    public $type;
+    protected $type;
 
     /**
      * Field data length
      *
      * @var int/string
-     * @access public
+     * @access protected
      */
-    public $length;
+    protected $length;
 
     /**
      * If true, the field must have a value
      *
      * @var bool
-     * @access public
+     * @access protected
      */
-    public $required = false;
+    protected $required = false;
 
     /**
      * Default value of the field
      *
      * @var mixed
-     * @access public
+     * @access protected
      */
-    public $default = null;
+    protected $default = null;
 
     /**
      * Autoincrement the field
      *
      * @var bool
-     * @access public
+     * @access protected
      */
-    public $ai = false;
+    protected $ai = false;
 
     /**
      * Mark the field as Primary Key
      *
      * @var bool
-     * @access public
+     * @access protected
      */
-    public $pk = false;
+    protected $pk = false;
 
     /**
      * Basic contructor
@@ -81,20 +81,54 @@ class Field
      */
     public function __construct(array $options)
     {
-        foreach($options as $key=>$option)
-        {
-            $this->{$key} = $option;
+        foreach(array_intersect_key($options, array_flip(['name', 'type', 'length', 'required', 'default', 'ai', 'pk'])) as $key=>$value) {
+            $this->{$key} = $value;
         }
 
-        if($this->pk) {
+        if($this->pk && !$this->ai) {
             $this->required = true;
         }
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    public function getLength()
+    {
+        return $this->length;
+    }
+
+    public function isRequired()
+    {
+        return $this->required;
+    }
+
+    public function getDefault()
+    {
+        return $this->default;
+    }
+
+    public function isAutoIncrement()
+    {
+        return $this->ai;
+    }
+
+    public function isPrimaryKey()
+    {
+        return $this->pk;
     }
 
     /**
      * Checks if the passed value is valid for the field
      *
-     * @param mised $value Value to be validated
+     * @param mixed $value Value to be validated
      *
      * @access public
      *

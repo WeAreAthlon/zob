@@ -14,7 +14,7 @@ namespace Zob\Objects;
 /**
  * Object representation if a database table index
  */
-class Index
+class Index implements IndexInterface
 {
     /**
      * Index name
@@ -22,31 +22,31 @@ class Index
      * @var string
      * @access private
      */
-    public $name;
+    private $name;
 
     /**
      * The field for the index
      *
      * @var string
-     * @access public
+     * @access private
      */
-    public $field;
+    private $field;
 
     /**
      * Type of the index
      *
      * @var string
-     * @access public
+     * @access private
      */
-    public $type = 'BTREE';
+    private $type = 'BTREE';
 
     /**
      * Sets the index as unique
      *
      * @var bool
-     * @access public
+     * @access private
      */
-    public $unique = false;
+    private $unique = false;
 
     /**
      * Length of the index
@@ -54,7 +54,7 @@ class Index
      * @var string
      * @access private
      */
-    public $length;
+    private $length;
 
     /**
      * Basic constructor
@@ -65,10 +65,38 @@ class Index
      */
     public function __construct(array $options)
     {
-        foreach($options as $key=>$option)
-        {
-            $this->{$key} = $option;
+        foreach (array_intersect_key($options, array_flip(['name', 'field', 'type', 'length', 'unique'])) as $key=>$value) {
+            $this->{$key} = $value;
         }
+
+        if (!$this->name) {
+            $this->name = "{$this->field}_idx";
+        }
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getField()
+    {
+        return $this->field;
+    }
+
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    public function isUnique()
+    {
+        return $this->unique;
+    }
+
+    public function getLength()
+    {
+        return $this->length;
     }
 }
 

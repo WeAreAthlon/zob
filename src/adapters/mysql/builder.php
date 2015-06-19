@@ -49,11 +49,11 @@ class Builder
      *
      * @TODO REFACTOR
      */
-    public function buildQuery(array $options)
+    public function buildQuery(\Zob\QueryInterface $query)
     {
         $sql = []; $params = [];
 
-        $ref = new \ReflectionClass(get_class($options['statement']));
+        $ref = new \ReflectionClass(get_class($query['statement']));
         switch($ref->getShortName()) {
             case 'Select': {
                 $statements = ['statement', 'from', 'join', 'where', 'group', 'having', 'order', 'limit'];
@@ -77,8 +77,8 @@ class Builder
         }
 
         foreach($statements as $statement) {
-            if(isset($options[$statement])) {
-                list($s, $p) = $options[$statement]->toSql();
+            if(isset($query[$statement])) {
+                list($s, $p) = $query[$statement]->toSql();
                 $sql[] = $s;
 
                 if($p) {

@@ -1,238 +1,87 @@
 <?php
-/**
- * Table object.
- *
- * @package    Zob
- * @subpackage Objects
- * @author     Kalin Stefanov <kalin@athlonsofia.com>
- * @copyright  Copyright (c) 2015, Zob
- * @license    http://opensource.org/licenses/gpl-license.php GNU Public License
- */
 
 namespace Zob\Objects;
-
-/**
- * Object representaion of a database table
- */
-class Table
+    
+class Table implements TableInterface
 {
-    /**
-     * Stores an active database connection
-     *
-     * @var Zob\Adapters\Adapter
-     * @access private
-     */
-    private $connection;
+    private $name;
 
-    /**
-     * Table name
-     *
-     * @var string
-     * @access public
-     */
-    public $name;
+    private $fields = [];
 
-    /**
-     * List of table fields(Zob\Objects\Field)
-     *
-     * @var array
-     * @access public
-     */
-    public $fields = [];
+    private $indexes = [];
 
-    /**
-     * List of table indexes(Zob\Objects\Index)
-     *
-     * @var array
-     * @access public
-     */
-    public $indexes = [];
-
-    /**
-     * Basic constructor
-     *
-     * @param Zob\Adapters\Adapter $connection Database connection
-     * @param string $name Table name
-     * @param array $definition List of fields
-     * @param array $indexes List of indexes
-     *
-     * @access public
-     */
-    function __construct($connection, $name, $definition = [], $indexes = [])
+    public function __construct($name, $fields = [], $indexes = [])
     {
-        $this->connection = $connection;
         $this->name = $name;
+        $this->fields = $fields;
+        $this->indexes = $indexes;
+    }
 
-        foreach($definition as $value) {
-            if(!($value instanceof Field)) {
-                $value = new Field($value);
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getField($fieldName)
+    {
+        return $this->fields[$fieldName];
+    }
+
+    public function getFields()
+    {
+        return $this->fields;
+    }
+
+    public function getIndex($indexName)
+    {
+        return $this->indexes[$indexName];
+    }
+
+    public function getIndexes()
+    {
+        return $this->indexes;
+    }
+
+    public function getPrimaryKey()
+    {
+        foreach ($this->fields as $field) {
+            if ($field->isPrimaryKey()) {
+                return $field;
             }
-
-            $this->fields[$value->name] = $value;
         }
 
-        foreach($indexes as $value) {
-            if(!($value instanceof Index)) {
-                $value = new Index($value);
-            }
-
-            $this->indexes[$value->name] = $value;
-        }
+        return null;
     }
 
-    /**
-     * Retrieve a table object
-     *
-     * @param Zob\Adapters\Adapter $connection Connection instance
-     * @param string $name Table name
-     *
-     * @access public
-     * @static
-     *
-     * @return Zob\Objects\Table
-     */
-    public static function get($connection, $name)
+    public function addField(FieldInterface $field)
     {
-        $table = $connection->getTable($name);
-
-        return new Table($connection, $name, $table['fields'], $table['indexes']);
+        $this->fields[$field->getName()] = $field;
     }
 
-    /**
-     * Creates a database table from the object
-     *
-     * @access public
-     *
-     * @return bool
-     */
-    public function create()
+    public function removeField($name)
     {
-        return $this->connection->createTable($this);
-    }
-
-    /**
-     * Deletes the table from the database
-     *
-     * @access public
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        return $this->connection->deleteTable($this->name);
-    }
-
-    /**
-     * Add new field to the table
-     *
-     * @param Zob\Adapters\Field|array $definition Field definition
-     *
-     * @access public
-     *
-     * @return void
-     */
-    public function addField($definition)
-    {
-        if(!($definition instanceof Field)) {
-            $definition = new Field($definition);
-        }
-
-        if($this->connection->createField($this->name, $definition)) {
-            $this->fields[$definition->name] = $definition;
-        }
-    }
-
-    /**
-     * Removes a field from the table
-     *
-     * @param string $name Field name
-     *
-     * @access public
-     *
-     * @reutrn void
-     */
-    public function deleteField($name)
-    {
-        if($this->connection->deleteField($this->name, $name)) {
+        if (isset($this->fields[$name])) {
             unset($this->fields[$name]);
+
+            return true;
         }
+        
+        return false;
     }
 
-    /**
-     * Change the definition of a field
-     *
-     * @param string $name Field to be changed
-     * @param Zob\Adapters\Field|array $definition New field definition
-     *
-     * @access public
-     *
-     * @return void
-     */
-    public function changeField($name, $definition)
+    public function addIndex(IndexInterface $index)
     {
-        if(!($definition instanceof Field)) {
-            $definition = new Field($definition);
-        }
-
-        if($this->connection->changeField($this->name, $name, $definition)) {
-            $this->fields[$name] = $definition;
-        }
+        $this->indexes[$index->getName()] = $index;
     }
 
-    /**
-     * Add new index to the table
-     *
-     * @param Zob\Adapters\Index|array $definition Index definition
-     *
-     * @access public
-     *
-     * @return void
-     */
-    public function addIndex($definition)
+    public function removeIndex($name)
     {
-        if(!($definition instanceof Index)) {
-            $definition = new Index($definition);
-        }
-
-        if($this->connection->createIndex($this->name, $definition)) {
-            $this->indexes[$definition->name] = $definition;
-        }
-    }
-
-    /**
-     * Removes an index from the table
-     *
-     * @param string $name Index name
-     *
-     * @access public
-     *
-     * @return void
-     */
-    public function deleteIndex($name)
-    {
-        if($this->connection->deleteIndex($this->name, $name)) {
+        if (isset($this->indexes[$name])) {
             unset($this->indexes[$name]);
-        }
-    }
 
-    /**
-     * Change the definition of an index
-     *
-     * @param string $name Index name
-     * @param Zob\Adapters\Index|array $definition Index definition
-     *
-     * @access public
-     */
-    public function changeIndex($name, $definition)
-    {
-        if(!($definition instanceof Index)) {
-            $definition = new Index($definition);
+            return true;
         }
-
-        $this->connection->transaction(function() use ($name, $definition) {
-            $this->deleteIndex($name);
-            $this->addIndex($definition);
-        });
+        
+        return false;
     }
 }
-

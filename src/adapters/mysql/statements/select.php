@@ -11,10 +11,14 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+use Zob\Adapters\StatementInterface;
+use Zob\Objects\TableInterface;
+use Zob\Helpers\Sql;
+
 /**
  * Select statement class
  */
-class Select
+class Select implements StatementInterface
 {
     /**
      * List of fields to retrieve
@@ -24,12 +28,6 @@ class Select
      */
     private $fields;
 
-    /**
-     * Whether to retrieve only the unique records
-     *
-     * @var bool
-     * @access private
-     */
     private $uniq = false;
 
     /**
@@ -40,10 +38,11 @@ class Select
      *
      * @access public
      */
-    function __construct($fields = '*', $uniq = false)
+    function __construct(TableInterface $table)
     {
-        $this->fields = $fields;
-        $this->uniq = $uniq;
+        /* Select all table fields */
+        $this->fields = Sql::fieldsToString($table->getName(), $fields);
+        $this->from = $table->getName();
     }
 
     /**
@@ -53,7 +52,7 @@ class Select
      *
      * @access public
      */
-    public function uniq($value)
+    public function uniq(bool $value)
     {
         $this->uniq = $value;
     }
@@ -73,12 +72,9 @@ class Select
             $r[] = 'DISTINCT';
         }
 
-        $fields = $this->fields;
-        if(is_array($this->fields)) {
-            $fields = implode(', ', $this->fields);
-        } 
-
-        $r[] = $fields;
+        $r[] = $this->fields;
+        $r[] = 'FROM';
+        $r[] = $this->from;
 
         return [implode(' ', $r), []];
     }

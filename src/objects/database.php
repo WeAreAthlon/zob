@@ -16,78 +16,98 @@ namespace Zob\Objects;
  */
 class Database
 {
-    /**
-     * Connection to the DB
-     *
-     * @var Zob\Adapters\Adapter
-     * @access private
-     */
-    private $connection;
+    private $tables = [];
 
     /**
      * Database name
      *
      * @var string
-     * @access public
+     * @access private
      */
-    public $name;
+    private $name;
 
     /**
      * Database character set
      *
      * @var string
-     * @access public
+     * @access private
      */
-    public $characterSet;
+    private $characterSet = 'utf8';
 
     /**
      * Database collation
      *
      * @var string
-     * @access public
+     * @access private
      */
-    public $collation;
+    private $collation = 'utf8_general_ci';
 
     /**
      * Basic constructor
      *
-     * @param Zob\Adapters\Adapter $connection Connection instance
      * @param string $name Database name
-     * @param string $characterSet Database character set
-     * @param string $collation Database collation
      *
      * @access public
      */
-    function __construct($connection, $name, $characterSet = 'utf8', $collation = 'utf8_general_ci')
+    public function __construct($name, array $tables = [])
     {
-        $this->connection = $connection;
         $this->name = $name;
+
+        foreach($tables as $table) {
+            $this->tables[$table->getName()] = $table;
+        }
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getCharacterSet()
+    {
+        return $this->characterSet;
+    }
+
+    public function setCharacterSet($characterSet)
+    {
         $this->characterSet = $characterSet;
+    }
+
+    public function getCollation()
+    {
+        return $this->collation;
+    }
+
+    public function setCollation($collation)
+    {
         $this->collation = $collation;
     }
 
-    /**
-     * Create the database
-     *
-     * @access public
-     *
-     * @return bool
-     */
-    public function create()
+    public function getTable($table)
     {
-        return $this->connection->createDatabase($this->name, $this->characterSet, $this->collation);
+        return $this->tables[$table];
     }
 
-    /**
-     * Delete the database
-     *
-     * @access public
-     *
-     * @return bool
-     */
-    public function delete()
+    public function addTable(TableInterface $table)
     {
-        return $this->connection->deleteDatabase($this->name);
+        $this->tables[$table->getName()] = $table;
+    }
+
+    public function removeTable($table)
+    {
+        if(isset($this->tables[$table])) {
+            unset($this->tables[$table]);
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public function getTables()
+    {
+        return $this->tables;
     }
 }
 

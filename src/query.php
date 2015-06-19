@@ -16,7 +16,6 @@ namespace Zob;
 class Query implements \ArrayAccess, \Countable, \Iterator
 {
     protected $connection,
-              $service,
               $items = array(),
               $joins = array(),
               $order,
@@ -25,10 +24,6 @@ class Query implements \ArrayAccess, \Countable, \Iterator
     public function __construct($connection)
     {
         $this->connection = $connection;
-
-        if(class_exists('Core\Modules\DB\Service\Query')) {
-            $this->service = new DB\Service\Query();
-        }
     }
 
     public function __get($val)

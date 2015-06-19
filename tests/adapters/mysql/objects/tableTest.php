@@ -1,193 +1,103 @@
 <?php
 use Zob\Objects\Table;
 use Zob\Objects\Field;
-use Zob\Adapters\MySql\MySql;
+use Zob\Objects\Index;
 
 /**
  * @covers Zob\Objects\Table
  */
 class TableTest extends PHPUnit_Framework_TestCase
 {
-    protected static $connection;
     protected static $table;
+
+    protected static $fields;
 
     public static function setUpBeforeClass()
     {
-        self::$connection = new MySql([
-            'host' => 'localhost',
-            'name' => 'silla_test',
-            'user' => 'root',
-            'password' => ''
-        ]);
-
-        self::$table = new Table(self::$connection, 'users', [
-            [
+        self::$fields = [
+            new Field([
                 'name' => 'id',
                 'type' => 'int',
                 'length' => 10,
                 'pk'    => true,
                 'ai'    => true
-            ],
-            [
+            ]),
+            new Field([
                 'name' => 'name',
                 'type' => 'varchar',
                 'length' => 255
-            ]
-        ]);
+            ])
+        ];
+
+        self::$table = new Table('users', self::$fields);
     }
 
     /**
-     * @covers Zob\Objects\Table::create
-     * @covers Zob\Objects\Table::get
+     * @covers Zob\Objects\Table::getName
      */
-    public function testTableCreation()
+    public function testGetName()
     {
-        self::$table->create();
-        $table = Table::get(self::$connection, 'users');
-
-        $this->assertEquals(self::$table, $table);
+        $this->assertEquals(self::$table->getName(), 'users');
     }
 
     /**
-     * @covers Zob\Objects\Table::create
-     * @covers Zob\Objects\Table::get
-     * @expectedException LogicException
+     * @covers Zob\Objects\Table::getFields
      */
-    public function testTableCreationOfExistingTable()
+    public function testGetFields()
     {
-        self::$table->create();
+        $this->assertEquals(self::$table->getFields(), self::$fields);
     }
 
     /**
      * @covers Zob\Objects\Table::addField
-     * @covers Zob\Objects\Table::get
-     * @depends testTableCreation
      */
     public function testAddField()
     {
-        $field = [
+        $field = new Field([
             'name' => 'email',
             'type' => 'varchar',
             'length' => 150,
             'required' => true
-        ];
+        ]);
 
         self::$table->addField($field);
 
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
+        $this->assertEquals(self::$table->getField('email'), $field);
     }
 
     /**
-     * @covers Zob\Objects\Table::addField
-     * @covers Zob\Objects\Table::get
-     * @depends testAddField
-     * @expectedException LogicException
-     */
-    public function testAddDuplicateField()
-    {
-        $field = [
-            'name' => 'email',
-            'type' => 'varchar',
-            'length' => 150,
-            'required' => true
-        ];
-
-        self::$table->addField($field);
-    }
-
-    /**
-     * @covers Zob\Objects\Table::changeField
-     * @covers Zob\Objects\Table::get
+     * @covers Zob\Objects\Table::removeField
      * @depends testAddField
      */
-    public function testChangeField()
+    public function testRemoveField()
     {
-        $field = [
-            'name' => 'email',
-            'type' => 'varchar',
-            'length' => 250,
-            'required' => true
-        ];
-
-        self::$table->changeField($field['name'], $field);
-
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
-   }
-
-    /**
-     * @covers Zob\Objects\Table::deleteField
-     * @covers Zob\Objects\Table::get
-     * @depends testAddField
-     */
-    public function testDeleteField()
-    {
-        self::$table->deleteField('email');
-
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
+        $this->assertTrue(self::$table->removeField('email'));
+        $this->assertFalse(self::$table->removeField('email2'));
     }
 
     /**
      * @covers Zob\Objects\Table::addIndex
-     * @covers Zob\Objects\Table::get
-     * @depends testTableCreation
      */
     public function testAddIndex()
     {
-        $index = [
+        $index = new Index([
             'name' => 'name_idx',
             'field' => 'name'
-        ];
+        ]);
 
         self::$table->addIndex($index);
 
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
+        $this->assertEquals(self::$table->getIndex('name_idx'), $index);
     }
 
     /**
-     * @covers Zob\Objects\Table::changeIndex
-     * @covers Zob\Objects\Table::get
+     * @covers Zob\Objects\Table::removeIndex
      * @depends testAddIndex
      */
-    public function testChangeIndex()
+    public function testRemoveIndex()
     {
-        $index = [
-            'name' => 'name_2_idx',
-            'field' => 'name',
-            'unique' => true
-        ];
-
-        self::$table->changeIndex('name_idx', $index);
-
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
-    }
-
-    /**
-     * @covers Zob\Objects\Table::deleteIndex
-     * @covers Zob\Objects\Table::get
-     * @depends testChangeIndex
-     */
-    public function testDeleteIndex()
-    {
-        self::$table->deleteIndex('name_2_idx');
-
-        $table = Table::get(self::$connection, 'users');
-        $this->assertEquals(self::$table, $table);
-    }
-
-    /**
-     * @covers Zob\Objects\Table::delete
-     * @depends testTableCreation
-     */
-    public function testDelete()
-    {
-        self::$table->delete();
-
-        $this->assertFalse(self::$connection->tableExists('users'));
+        $this->assertTrue(self::$table->removeIndex('name_idx'));
+        $this->assertFalse(self::$table->removeIndex('name_idx_2'));
     }
 }
 

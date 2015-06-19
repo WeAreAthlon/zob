@@ -50,3 +50,4 @@ interface iAdapter
 
     public function rollback();
 }
+
