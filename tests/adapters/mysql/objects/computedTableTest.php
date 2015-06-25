@@ -65,7 +65,7 @@ class ComputedTableTest extends PHPUnit_Framework_TestCase
      */
     public function testGetTable()
     {
-        $this->assertEquals(self::$computedTable->getTable(self::$table->getName()), self::$table);
+        $this->assertEquals(self::$computedTable->getTable(self::$table1->getName()), self::$table1);
     }
 
     /**
@@ -77,15 +77,6 @@ class ComputedTableTest extends PHPUnit_Framework_TestCase
         self::$computedTable->addTable(self::$table2);
 
         $this->assertEquals(self::$computedTable->getTable(self::$table2->getName()), self::$table2);
-    }
-
-    /**
-     * @covers Zob\Objects\ComputedTable::getName
-     * @depends testAddTable
-     */
-    public function testGetName()
-    {
-        $this->assertEquals(self::$computedTable->getName(), [self::$table1->getName(), self::$table2->getName()]);
     }
 
     /**

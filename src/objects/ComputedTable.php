@@ -2,7 +2,7 @@
 
 namespace Zob\Objects;
 
-class ComputedTable implements TableInterface
+class ComputedTable
 {
     private $tables = [];
 
@@ -19,12 +19,26 @@ class ComputedTable implements TableInterface
 
     public function getName()
     {
-        return array_keys($this->tables);
+        if(empty($this->joins)) {
+            return implode(', ', array_keys($this->tables));
+        }
+
+        return $this->tables[0]->getName();
+    }
+
+    public function getFields()
+    {
+        $r = [];
+        foreach ($this->tables as $table) {
+            $r = array_merge($r, $table->getFields());
+        }
+
+        return $r;
     }
 
     public function getTable($tableName)
     {
-        return $this->tables[$tableName]; 
+        return $this->tables[$tableName];
     }
 
     public function addTable(TableInterface $table)
@@ -32,14 +46,13 @@ class ComputedTable implements TableInterface
         $this->tables[$table->getName()] = $table;
     }
 
-    public function addJoin(JoinInterface $join)
+    public function join(TableInterface $table, $conditions, $type)
     {
-        $this->joins[] = $join;
-    }
-
-    public function getFields()
-    {
-        
+        $this->joins[] = [
+            'table'      => $table->getName(),
+            'type'       => $type,
+            'conditions' => $conditions
+        ];
     }
 
     public function getJoins()

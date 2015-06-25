@@ -26,7 +26,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
         $where->add([
             'id' => [
                 '$gt' => 3
-            ],
+            ]
         ]);
         list($sql, $vars) = $where->toSql();
         $this->assertEquals('WHERE category = ? AND is_active = ? AND (id > ?)', $sql);

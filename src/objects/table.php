@@ -13,7 +13,9 @@ class Table implements TableInterface
     public function __construct($name, $fields = [], $indexes = [])
     {
         $this->name = $name;
-        $this->fields = $fields;
+        foreach ($fields as $field) {
+            $this->fields[$field->getName()] = $field;
+        }
         $this->indexes = $indexes;
     }
 

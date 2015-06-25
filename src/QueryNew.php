@@ -1,5 +1,5 @@
 <?php
-    
+
 namespace Zob;
 
 class Query implements QueryInterface
@@ -10,10 +10,11 @@ class Query implements QueryInterface
         $this->factories = $this->connection->getFactories();
     }
 
-    public function select(TableInterface $table)
+    public function select($table)
     {
         $this->statement = $this->factories->selectFactory->create($table);
 
-        return $this;
+        return $this->statement;
     }
 }
+

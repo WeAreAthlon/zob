@@ -20,6 +20,9 @@ use Zob\Helpers\Sql;
  */
 class Select implements StatementInterface
 {
+    use WhereTrait;
+    use OrderTrait;
+
     /**
      * List of fields to retrieve
      *
@@ -38,11 +41,16 @@ class Select implements StatementInterface
      *
      * @access public
      */
-    function __construct(TableInterface $table)
+    function __construct($table)
     {
-        /* Select all table fields */
-        $this->fields = Sql::fieldsToString($table->getName(), $fields);
-        $this->from = $table->getName();
+        $this->table = $table;
+    }
+
+    public function limit($limit, $offset = 0)
+    {
+        $this->limit = new Limit($limit, $offset);
+
+        return $this;
     }
 
     /**
@@ -72,9 +80,24 @@ class Select implements StatementInterface
             $r[] = 'DISTINCT';
         }
 
-        $r[] = $this->fields;
-        $r[] = 'FROM';
-        $r[] = $this->from;
+        $fields = [];
+        foreach ($this->table->getFields() as $field) {
+            $fields[] = "{$field->getTable()->getName()}.{$field->getName()}";
+        }
+
+        $r[] = implode(', ', $fields);
+        $r[] = "FROM {$this->table->getName()}";
+
+        if (!empty($this->table->getJoins())) {
+            $join = $this->table->getJoins()[0];
+            $r[] = "{$join->type} JOIN {$join->table->getName()} ON ({parseConditions($join->getConditions())})";
+        }
+
+        foreach (['where', 'order', 'limit'] as $clause) {
+            if ($this->{$clause}) {
+                $r[] = $this->{$clause}->toSql();
+            }
+        }
 
         return [implode(' ', $r), []];
     }
