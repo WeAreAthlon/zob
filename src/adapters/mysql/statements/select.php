@@ -36,12 +36,11 @@ class Select implements StatementInterface
     /**
      * Basic constructor
      *
-     * @param string/array $fields List of fields
-     * @param bool $uniq Return only unique records
+     * @param TableInterface $table Table object
      *
      * @access public
      */
-    function __construct($table)
+    function __construct(TableInterface $table)
     {
         $this->table = $table;
     }
@@ -88,8 +87,7 @@ class Select implements StatementInterface
         $r[] = implode(', ', $fields);
         $r[] = "FROM {$this->table->getName()}";
 
-        if (!empty($this->table->getJoins())) {
-            $join = $this->table->getJoins()[0];
+        foreach ($this->table->getJoins() as $join) {
             $r[] = "{$join->type} JOIN {$join->table->getName()} ON ({parseConditions($join->getConditions())})";
         }
 

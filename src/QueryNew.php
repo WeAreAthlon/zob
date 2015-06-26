@@ -4,15 +4,14 @@ namespace Zob;
 
 class Query implements QueryInterface
 {
-    public function __construct(ConnectionService $connectionService)
+    public function __construct(ConnectionInterface $connection)
     {
-        $this->connection = $connectionService->getConnection();
-        $this->factories = $this->connection->getFactories();
+        $this->connection = $connection;
     }
 
     public function select($table)
     {
-        $this->statement = $this->factories->selectFactory->create($table);
+        $this->statement = $this->selectFactory->create($table);
 
         return $this->statement;
     }

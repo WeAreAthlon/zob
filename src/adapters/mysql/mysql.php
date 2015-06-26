@@ -1,6 +1,6 @@
 <?php
 /**
- * PDO_MYSQL adapter.
+ * MySql adapter.
  *
  * @package    Zob
  * @subpackage Adapters\MySql
@@ -11,12 +11,13 @@
 
 namespace Zob\Adapters\MySql;
 
-use Zob\Adapters\Adapter;
+use Zob\Adapters\Connection;
+use Zob\Adapters\Factories;
 
 /**
  * Database management driver wrapping PDO_MYSQL extension.
  */
-class MySql extends Adapter
+class MySql extends Connection
 {
     /**
      * Create the DB connection and initialize a SQL builder
@@ -27,19 +28,17 @@ class MySql extends Adapter
      */
     public function __construct(array $dsn)
     {
+        parent::__construct();
+
         $connString = "mysql:host={$dsn['host']};";
 
         if(isset($dsn['name'])) {
             $connString .= "dbname={$dsn['name']}";
         }
 
-        parent::__construct(
-            $connString,
-            $dsn['user'],
-            $dsn['password']
-        );
+        $this->conn = new \PDO($connString, $dsn['user'], $dsn['password']);
 
-        $this->builder = new Builder();
+        $this->selectFactory = new Factories\SelectFactory();
     }
 }
 

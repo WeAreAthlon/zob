@@ -1,7 +1,7 @@
 <?php
 
 namespace Zob\Objects;
-    
+
 class Table implements TableInterface
 {
     private $name;
@@ -9,6 +9,8 @@ class Table implements TableInterface
     private $fields = [];
 
     private $indexes = [];
+
+    private $joins = [];
 
     public function __construct($name, $fields = [], $indexes = [])
     {
@@ -67,7 +69,7 @@ class Table implements TableInterface
 
             return true;
         }
-        
+
         return false;
     }
 
@@ -83,7 +85,22 @@ class Table implements TableInterface
 
             return true;
         }
-        
+
         return false;
     }
+
+    public function join(TableInterface $table, $conditions, $type)
+    {
+        $this->joins[] = [
+            'table'      => $table->getName(),
+            'type'       => $type,
+            'conditions' => $conditions
+        ];
+    }
+
+    public function getJoins()
+    {
+        return $this->joins;
+    }
 }
+

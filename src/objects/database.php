@@ -14,7 +14,7 @@ namespace Zob\Objects;
 /**
  * Object representation of a Database
  */
-class Database
+class Database implements DatabaseInterface
 {
     private $tables = [];
 
@@ -103,7 +103,6 @@ class Database
 
         return false;
     }
-
 
     public function getTables()
     {

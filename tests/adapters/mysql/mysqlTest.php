@@ -1,7 +1,10 @@
 <?php
 use Zob\Adapters\MySql\MySql;
 use Zob\Adapters\MySql\Statements;
+use Zob\Objects\Database;
 use Zob\Objects\Table;
+use Zob\Objects\Field;
+use Zob\Objects\Index;
 
 /**
  * @covers Zob\Adapters\MySql\MySql
@@ -9,8 +12,6 @@ use Zob\Objects\Table;
 class MysqlTest extends PHPUnit_Extensions_Database_TestCase
 {
     protected static $connection;
-    protected static $users;
-    protected static $tasks;
 
     protected function getTableRows($queryTable)
     {
@@ -30,68 +31,10 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
             'user' => 'root',
             'password' => ''
         ]);
-
-        self::$users = new Table(self::$connection, 'users', [
-            [
-                'name' => 'id',
-                'type' => 'int',
-                'length' => 10,
-                'pk'    => true,
-                'ai'    => true
-            ],
-            [
-                'name' => 'name',
-                'type' => 'varchar',
-                'length' => 255
-            ],
-            [
-                'name' => 'email',
-                'type' => 'varchar',
-                'length' => 255,
-                'required' => true
-            ],
-            [
-                'name' => 'created_at',
-                'type' => 'datetime'
-            ]
-        ]);
-        self::$users->create();
-
-        self::$tasks = new Table(self::$connection, 'tasks', [
-            [
-                'name' => 'id',
-                'type' => 'int',
-                'length' => 10,
-                'pk'    => true,
-                'ai'    => true
-            ],
-            [
-                'name' => 'title',
-                'type' => 'varchar',
-                'length' => 255
-            ],
-            [
-                'name' => 'user_id',
-                'type' => 'int',
-                'length' => 10,
-                'required' => true
-            ],
-            [
-                'name' => 'description',
-                'type' => 'text'
-            ],
-            [
-                'name' => 'created_at',
-                'type' => 'datetime'
-            ]
-        ]);
-        self::$tasks->create();
     }
 
     public static function tearDownAfterClass()
     {
-        self::$users->delete();
-        self::$tasks->delete();
     }
 
     /**
@@ -109,321 +52,177 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::databaseExists
      */
-    public function testSelectingAllRecords()
+    public function testDatabaseExists()
     {
-        /* Select all fields */
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        /* Select only the id and email */
-        $options = [
-            'statement'     => new Statements\Select('id, email'),
-            'from'          => new Statements\From(self::$users->name)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT id, email FROM users'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        /* Select only the id and email passed as array */
-        $options = [
-            'statement'     => new Statements\Select(['id', 'email']),
-            'from'          => new Statements\From(self::$users->name)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT id, email FROM users'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        $this->assertFalse(self::$connection->databaseExists('silla_test_missing'));
+        $this->assertTrue(self::$connection->databaseExists('silla_test'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::createDatabase
+     * @depends testDatabaseExists
      */
-    public function testSelectingRecordsWithFilter()
+    public function testCreateDatabase()
     {
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'where'         => new Statements\Where('id < ?', [4])
-        ];
+        $database = new Database('silla_test_created');
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users WHERE id < 4'
-        );
+        $this->assertFalse(self::$connection->databaseExists('silla_test_created'));
 
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        self::$connection->createDatabase($database);
 
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'where'         => new Statements\Where(['id' => [4, 6]])
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users WHERE id IN(4, 6)'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        $this->assertTrue(self::$connection->databaseExists('silla_test_created'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::deleteDatabase
+     * @depends testCreateDatabase
      */
-    public function testSelectingRecordsWithOrder()
+    public function testDeleteDatabase()
     {
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'order'         => new Statements\Order('created_at', 'desc')
-        ];
+        self::$connection->deleteDatabase('silla_test_created');
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users ORDER BY created_at desc'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'order'         => new Statements\Order(['created_at' => 'desc', 'id' => 'asc'])
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users ORDER BY created_at desc, id asc'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        $this->assertFalse(self::$connection->databaseExists('silla_test_created'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::tableExists
      */
-    public function testSelectingRecordsWithLimit()
+    public function testTableExists()
     {
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'limit'         => new Statements\Limit(4)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users LIMIT 4'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        $options = [
-            'statement'     => new Statements\Select(),
-            'from'          => new Statements\From(self::$users->name),
-            'limit'         => new Statements\Limit(3, 2)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users LIMIT 3 OFFSET 2'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        $this->assertFalse(self::$connection->tableExists('users_missing'));
+        $this->assertTrue(self::$connection->tableExists('users'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::getTable
      */
-    public function testSelectingRecordsWithJoin()
+    public function testGetTable()
     {
-        $options = [
-            'statement'     => new Statements\Select('users.*'),
-            'from'          => new Statements\From(self::$users->name),
-            'join'          => new Statements\Join(self::$tasks->name, "users.id = tasks.user_id")
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT users.* FROM users LEFT JOIN tasks ON(users.id = tasks.user_id)'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        $options = [
-            'statement'     => new Statements\Select('tasks.*'),
-            'from'          => new Statements\From(self::$users->name),
-            'join'          => new Statements\Join(self::$tasks->name, "users.id = tasks.user_id"),
-            'where'         => new Statements\Where('users.id = 2')
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT tasks.* FROM users LEFT JOIN tasks ON(users.id = tasks.user_id) WHERE users.id = 2'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        $options = [
-            'statement'     => new Statements\Select('users.id, users.email, tasks.title, tasks.user_id'),
-            'from'          => new Statements\From(self::$users->name),
-            'join'          => new Statements\Join(self::$tasks->name, "users.id = tasks.user_id"),
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT users.id, users.email, tasks.title, tasks.user_id FROM users LEFT JOIN tasks ON(users.id = tasks.user_id)'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
-
-        $options = [
-            'statement'     => new Statements\Select('users.id, users.email, tasks.title, tasks.user_id'),
-            'from'          => new Statements\From(self::$users->name),
-            'join'          => new Statements\Join(self::$tasks->name, "users.id = tasks.user_id", 'INNER'),
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT users.id, users.email, tasks.title, tasks.user_id FROM users INNER JOIN tasks ON(users.id = tasks.user_id)'
-        );
-
-        $this->assertEquals($result, $this->getTableRows($queryTable));
+        $this->assertEquals(self::$connection->getTable('users'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::createTable
+     * @depends testTableExists
      */
-    public function testRecordInsertion()
+    public function testCreateTable()
     {
-        $options = [
-            'statement'     => new Statements\Insert(self::$users->name, ['name' => 'User7', 'email' => 'user7@test.com', 'created_at' => '2015-02-24 18:15:23']),
-        ];
+        $table = new Table('users_created', [
+            new Field([
+                'name' => 'id',
+                'type' => 'int',
+                'length' => 10,
+                'pk'    => true,
+                'ai'    => true
+            ]),
+            new Field([
+                'name' => 'name',
+                'type' => 'varchar',
+                'length' => 255
+            ])
+        ]);
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', 'SELECT * FROM users WHERE id = 7'
-        );
+        $this->assertFalse(self::$connection->tableExists('users_created'));
 
-        $this->assertEquals(1, $queryTable->getRowCount());
+        self::$connection->createTable($table);
+
+        $this->assertTrue(self::$connection->tableExists('users_created'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
-     * @expectedException LogicException
+     * @covers Zob\Adapters\MySql\MySql::deleteTable
+     * @depends testCreateTable
      */
-    public function testRecordInsertionWithMissingRequiredFeld()
+    public function testDeleteTable()
     {
-        $options = [
-            'statement'     => new Statements\Insert(self::$users->name, ['name' => 'User7', 'created_at' => '2015-02-24 18:15:23']),
-        ];
+        self::$connection->deleteTable('users_created');
 
-        $result = self::$connection->run($options);
+        $this->assertFalse(self::$connection->tableExists('users_created'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::createField
+     * @depends testGetTable
      */
-    public function testRecordUpdate()
+    public function testCreateField()
     {
-        $options = [
-            'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
-            'where'         => new Statements\Where(['email' => 'user5@test.com']),
-        ];
+        $field = new Field([
+            'name' => 'created_field',
+            'type' => 'varchar',
+            'length' => 255
+        ]);
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', "SELECT * FROM users WHERE email = 'user5updated@test.com'"
-        );
+        self::$connection->createField($field, 'users');
 
-        $this->assertEquals(1, $queryTable->getRowCount());
+        $table = self::$connection->getTable('users');
 
-        $options = [
-            'statement'     => new Statements\Update(self::$users->name, ['name' => 'UpdatedName']),
-            'where'         => new Statements\Where(['id' => ['$lte' => 3]])
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', "SELECT * FROM users WHERE name = 'UpdatedName'"
-        );
-
-        $this->assertEquals(3, $queryTable->getRowCount());
-
-        $options = [
-            'statement'     => new Statements\Update(self::$users->name, ['name' => 'GT3']),
-            'where'         => new Statements\Where(['id' => ['$gt' => 4]]),
-            'limit'         => new Statements\Limit(2)
-        ];
-
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', "SELECT * FROM users WHERE name = 'GT3'"
-        );
-
-        $this->assertEquals(2, $queryTable->getRowCount());
+        $this->assertEquals($field, $table->getField('created_field'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
-     * @expectedException LogicException
+     * @covers Zob\Adapters\MySql\MySql::changeField
+     * @depends testCreateField
      */
-    public function testRecordUpdateWithMissingRequiredFeld()
+    public function testChangeField()
     {
-        $options = [
-            'statement'     => new Statements\Update(self::$users->name, ['email' => '']),
-            'where'         => new Statements\Where(['email' => 'user5@test.com'])
-        ];
+        $field = new Field([
+            'name' => 'created_field_changed',
+            'type' => 'int',
+            'length' => 10
+        ]);
 
-        $result = self::$connection->run($options);
+        self::$connection->changeField('users', 'created_field', $field);
+
+        $table = self::$connection->getTable('users');
+
+        $this->assertFalse($table->getField('created_field'));
+        $this->assertEquals($field, $table->getField('created_field_changed'));
     }
 
     /**
-     * @covers Zob\Adapters\MySql\MySql::run
+     * @covers Zob\Adapters\MySql\MySql::deleteField
+     * @depends testChangeField
      */
-    public function testRecordDeletion()
+    public function testDeleteField()
     {
-        $options = [
-            'statement'     => new Statements\Delete(self::$users->name),
-            'where'         => new Statements\Where(['email' => 'user2@test.com'])
-        ];
+        self::$connection->deleteField('created_field_changed', 'users');
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', "SELECT * FROM users WHERE email = 'user2@test.com'"
-        );
+        $table = self::$connection->getTable('users');
 
-        $this->assertEquals(0, $queryTable->getRowCount());
+        $this->assertFalse($table->getField('created_field_changed'));
+    }
 
-        $options = [
-            'statement'     => new Statements\Delete(self::$users->name),
-            'where'         => new Statements\Where(['id' => ['$gt' => 3]]),
-            'limit'         => new Statements\Limit(2)
-        ];
+    /**
+     * @covers Zob\Adapters\MySql\MySql::createIndex
+     * @depends testGetTable
+     */
+    public function testCreateIndex()
+    {
+        $index = new Index([
+            'name' => 'name_idx',
+            'field' => 'name'
+        ]);
 
-        $result = self::$connection->run($options);
-        $queryTable = $this->getConnection()->createQueryTable(
-            'users', "SELECT * FROM users"
-        );
+        self::$connection->createIndex($index, 'users');
 
-        $this->assertEquals(3, $queryTable->getRowCount());
+        $table = self::$connection->getTable('users');
+
+        $this->assertEquals($index, $table->getIndex('name_idx'));
+    }
+
+    /**
+     * @covers Zob\Adapters\MySql\MySql::deleteIndex
+     * @depends testCreateIndex
+     */
+    public function testDeleteIndex()
+    {
+        self::$connection->deleteIndex('name_idx', 'users');
+
+        $table = self::$connection->getTable('users');
+
+        $this->assertFalse($table->getIndex('name_idx'));
     }
 
     /**
