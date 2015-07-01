@@ -2,28 +2,20 @@
 
 namespace Zob;
 
+use Zob\Objects\TableInterface;
+
 interface QueryInterface
 {
-    public function select();
+    public function select(TableInterface $table);
 
-    public function insert();
+    public function insert(TableInterface $table);
 
-    public function update();
+    public function update(TableInterface $table);
 
-    public function delete();
-
-    public function from();
-
-    public function joins();
-
-    public function group();
-
-    public function order();
-
-    public function limit();
-
-    public function where();
+    public function delete(TableInterface $table);
 
     public function prepare();
+
+    public function run();
 }
 

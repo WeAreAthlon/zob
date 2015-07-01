@@ -45,7 +45,7 @@ class TableTest extends PHPUnit_Framework_TestCase
      */
     public function testGetFields()
     {
-        $this->assertEquals(self::$table->getFields(), self::$fields);
+        $this->assertEquals(array_values(self::$table->getFields()), self::$fields);
     }
 
     /**

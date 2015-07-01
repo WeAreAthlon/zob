@@ -2,7 +2,7 @@
 
 namespace Zob\Objects;
 
-interface Database
+interface DatabaseInterface
 {
     public function getName();
 

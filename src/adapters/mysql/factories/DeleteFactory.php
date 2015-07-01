@@ -5,11 +5,11 @@ namespace Zob\Adapters\MySql\Factories;
 use Zob\Adapters\MySql\Statements;
 use Zob\Objects\TableInterface;
 
-class SelectFactory
+class DeleteFactory
 {
     public function create(TableInterface $table)
     {
-        return new Statements\Select($table);
+        return new Statements\Delete($table);
     }
 }
 

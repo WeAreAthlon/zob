@@ -22,6 +22,7 @@ class Select implements StatementInterface
 {
     use WhereTrait;
     use OrderTrait;
+    use LimitTrait;
 
     /**
      * List of fields to retrieve
@@ -45,13 +46,6 @@ class Select implements StatementInterface
         $this->table = $table;
     }
 
-    public function limit($limit, $offset = 0)
-    {
-        $this->limit = new Limit($limit, $offset);
-
-        return $this;
-    }
-
     /**
      * Set the uniq option
      *
@@ -59,7 +53,7 @@ class Select implements StatementInterface
      *
      * @access public
      */
-    public function uniq(bool $value)
+    public function uniq($value)
     {
         $this->uniq = $value;
     }
@@ -81,7 +75,7 @@ class Select implements StatementInterface
 
         $fields = [];
         foreach ($this->table->getFields() as $field) {
-            $fields[] = "{$field->getTable()->getName()}.{$field->getName()}";
+            $fields[] = "{$this->table->getName()}.{$field->getName()}";
         }
 
         $r[] = implode(', ', $fields);

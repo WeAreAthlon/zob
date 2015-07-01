@@ -11,6 +11,8 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+use Zob\Objects\TableInterface;
+
 /**
  * Insert statement class
  */
@@ -19,20 +21,11 @@ class Insert
     /**
      * Table name to insert into
      *
-     * @var string
+     * @var TableInterface
      *
      * @access private
      */
-    private $into;
-
-    /**
-     * Which fields to set
-     *
-     * @var array
-     *
-     * @access private
-     */
-    private $fields;
+    private $table;
 
     /**
      * Values to be inserted
@@ -46,21 +39,14 @@ class Insert
     /**
      * Basic constructor
      *
-     * @param string $into Table name
-     * @param array $fields List of fields
+     * @param TableInterface $table Table instance
      * @param array $values List of values
      *
      * @access public
      */
-    function __construct($into, $fields = [], $values = [])
+    function __construct(TableInterface $table, $values = [])
     {
-        $this->into = $into;
-
-        if((bool)count(array_filter(array_keys($fields), 'is_string'))) {
-            $values = array_values($fields);
-            $fields = array_keys($fields);
-        }
-        $this->fields = $fields;
+        $this->table = $table;
         $this->values = $values;
     }
 
@@ -74,16 +60,23 @@ class Insert
      */
     public function toSql()
     {
-        if(count($this->fields) !== count($this->values)) {
-            throw new \UnexpectedValueException("The number of values doesn't match the number of fields");
+        $r = ["INSERT INTO {$this->table->getName()}"];
+        $field = [];
+        $values = [];
+        $tableFields = $this->table->getFields();
+
+        foreach ($tableFields as $field) {
+            if (!$field->isAutoIncrement()) {
+                $fields[] = $field->getName();
+                $values[] = isset($this->values[$field->getName()]) ? $this->values[$field->getName()] : null;
+            }
         }
 
-        $r = ["INSERT INTO {$this->into}"];
-        $f = implode(', ', $this->fields);
-        $v = implode(', ', array_map(function() { return '?'; }, $this->values));
+        $f = implode(', ', $fields);
+        $v = implode(', ', array_map(function() { return '?'; }, $values));
         $r[] = "({$f}) VALUES ({$v})";
 
-        return [implode(' ', $r), $this->values];
+        return [implode(' ', $r), $values];
     }
 }
 

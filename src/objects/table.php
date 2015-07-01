@@ -18,7 +18,10 @@ class Table implements TableInterface
         foreach ($fields as $field) {
             $this->fields[$field->getName()] = $field;
         }
-        $this->indexes = $indexes;
+
+        foreach ($indexes as $index) {
+            $this->indexes[$index->getName()] = $index;
+        }
     }
 
     public function getName()
@@ -28,7 +31,11 @@ class Table implements TableInterface
 
     public function getField($fieldName)
     {
-        return $this->fields[$fieldName];
+        if (isset($this->fields[$fieldName])) {
+            return $this->fields[$fieldName];
+        }
+
+        return false;
     }
 
     public function getFields()
@@ -38,7 +45,11 @@ class Table implements TableInterface
 
     public function getIndex($indexName)
     {
-        return $this->indexes[$indexName];
+        if (isset($this->indexes[$indexName])) {
+            return $this->indexes[$indexName];
+        }
+
+        return false;
     }
 
     public function getIndexes()
@@ -87,6 +98,19 @@ class Table implements TableInterface
         }
 
         return false;
+    }
+
+    public function getPartial(array $fields)
+    {
+        $partialTable = new PartialTable($this->name);
+
+        foreach ($fields as $fieldName) {
+            if($this->getField($fieldName)) {
+                $partialTable->addField($this->getField($fieldName));
+            }
+        }
+
+        return $partialTable;
     }
 
     public function join(TableInterface $table, $conditions, $type)

@@ -11,11 +11,17 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+use Zob\Objects\TableInterface;
+
 /**
  * Update statement class
  */
 class Update
 {
+    use WhereTrait;
+    use OrderTrait;
+    use LimitTrait;
+
     /**
      * Table name to update
      *
@@ -23,14 +29,6 @@ class Update
      * @access private
      */
     private $table;
-
-    /**
-     * Fields to update
-     *
-     * @var array
-     * @access private
-     */
-    private $fields;
 
     /**
      * Values to insert
@@ -43,20 +41,14 @@ class Update
     /**
      * Basic constructor
      *
-     * @param string $table Table name
-     * @param array $fields Fields to update
+     * @param TableInterface $table Table object
      * @param array $values Values to insert
      *
      * @access public
      */
-    function __construct($table, $fields = [], $values = [])
+    function __construct(TableInterface $table, $values = [])
     {
         $this->table = $table;
-        if((bool)count(array_filter(array_keys($fields), 'is_string'))) {
-            $values = array_values($fields);
-            $fields = array_keys($fields);
-        }
-        $this->fields = $fields;
         $this->values = $values;
     }
 
@@ -69,14 +61,29 @@ class Update
      */
     public function toSql()
     {
-        if(count($this->fields) !== count($this->values)) {
-            throw new \UnexpectedValueException("The number of values doesn't match the number of fields");
+        $r = ["UPDATE {$this->table->getName()} SET"];
+        $field = [];
+        $values = [];
+        $tableFields = $this->table->getFields();
+
+        foreach ($tableFields as $field) {
+            if (!$field->isAutoIncrement()) {
+                $fields[] = "{$field->getName()} = ?";
+                $values[] = isset($this->values[$field->getName()]) ? $this->values[$field->getName()] : null;
+            }
         }
 
-        $r = ["UPDATE {$this->table} SET"];
-        $r[] = implode(', ', array_map(function($item) { return "{$item} = ?"; }, $this->fields));
+        $r[] = implode(', ', $fields);
 
-        return [implode(' ', $r), $this->values];
+        foreach (['where', 'order', 'limit'] as $clause) {
+            if ($this->{$clause}) {
+                list($s, $p) = $this->{$clause}->toSql();
+                $r[] = $s;
+                $values = array_merge($values, $p);
+            }
+        }
+
+        return [implode(' ', $r), $values];
     }
 }
 

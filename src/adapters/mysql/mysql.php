@@ -12,7 +12,7 @@
 namespace Zob\Adapters\MySql;
 
 use Zob\Adapters\Connection;
-use Zob\Adapters\Factories;
+use Zob\Adapters\MySql\Factories;
 
 /**
  * Database management driver wrapping PDO_MYSQL extension.
@@ -39,6 +39,9 @@ class MySql extends Connection
         $this->conn = new \PDO($connString, $dsn['user'], $dsn['password']);
 
         $this->selectFactory = new Factories\SelectFactory();
+        $this->insertFactory = new Factories\InsertFactory();
+        $this->updateFactory = new Factories\UpdateFactory();
+        $this->deleteFactory = new Factories\DeleteFactory();
     }
 }
 

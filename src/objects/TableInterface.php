@@ -11,7 +11,5 @@ interface TableInterface
     public function getFields();
 
     public function addField(FieldInterface $field);
-
-    public function removeField($fieldName);
 }
 

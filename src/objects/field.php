@@ -82,6 +82,9 @@ class Field implements FieldInterface
     public function __construct(array $options)
     {
         foreach(array_intersect_key($options, array_flip(['name', 'type', 'length', 'required', 'default', 'ai', 'pk'])) as $key=>$value) {
+            if($key == 'length') {
+                $value = (int) $value;
+            }
             $this->{$key} = $value;
         }
 

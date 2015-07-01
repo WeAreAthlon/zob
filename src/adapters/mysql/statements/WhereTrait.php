@@ -1,5 +1,5 @@
 <?php
-    
+
 namespace Zob\Adapters\MySql\Statements;
 
 trait WhereTrait
@@ -15,6 +15,11 @@ trait WhereTrait
         }
 
         return $this;
+    }
+
+    public function getWhere()
+    {
+        return $this->where;
     }
 }
 

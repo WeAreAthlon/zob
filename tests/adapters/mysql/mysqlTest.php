@@ -12,6 +12,7 @@ use Zob\Objects\Index;
 class MysqlTest extends PHPUnit_Extensions_Database_TestCase
 {
     protected static $connection;
+    protected static $users;
 
     protected function getTableRows($queryTable)
     {
@@ -31,10 +32,68 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
             'user' => 'root',
             'password' => ''
         ]);
+
+        self::$users = new Table('users', [
+            new Field([
+                'name' => 'id',
+                'type' => 'int',
+                'length' => 10,
+                'pk'    => true,
+                'ai'    => true
+            ]),
+            new Field([
+                'name' => 'name',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Field([
+                'name' => 'email',
+                'type' => 'varchar',
+                'length' => 255,
+                'required' => true
+            ]),
+            new Field([
+                'name' => 'created_at',
+                'type' => 'datetime'
+            ])
+        ]);
+        self::$connection->createTable(self::$users);
+
+        $tasks = new Table('tasks', [
+            new Field([
+                'name' => 'id',
+                'type' => 'int',
+                'length' => 10,
+                'pk'    => true,
+                'ai'    => true
+            ]),
+            new Field([
+                'name' => 'title',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Field([
+                'name' => 'user_id',
+                'type' => 'int',
+                'length' => 10,
+                'required' => true
+            ]),
+            new Field([
+                'name' => 'description',
+                'type' => 'text'
+            ]),
+            new Field([
+                'name' => 'created_at',
+                'type' => 'datetime'
+            ])
+        ]);
+        self::$connection->createTable($tasks);
     }
 
     public static function tearDownAfterClass()
     {
+        self::$connection->deleteTable('users');
+        self::$connection->deleteTable('tasks');
     }
 
     /**
@@ -100,7 +159,7 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
      */
     public function testGetTable()
     {
-        $this->assertEquals(self::$connection->getTable('users'));
+        $this->assertEquals(self::$connection->getTable('users'), self::$users);
     }
 
     /**
@@ -231,16 +290,13 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     public function testTransaction()
     {
         self::$connection->transaction(function() {
-            /*@TODO execute queries */
-            self::$connection->run([
-                'statement'     => new Statements\Delete(self::$users->name),
-                'where'         => new Statements\Where(['email' => 'user2@test.com'])
-            ]);
+            $stmt = new Statements\Delete(self::$users);
+            list($sql, $params) = $stmt->where(['email' => 'user2@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
 
-            self::$connection->run([
-                'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
-                'where'         => new Statements\Where(['email' => 'user5@test.com']),
-            ]);
+            $stmt = new Statements\Update(self::$users, ['email' => 'user5updated@test.com']);
+            list($sql, $params) = $stmt->where(['email' => 'user5@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
         });
 
         $queryTable = $this->getConnection()->createQueryTable(
@@ -262,16 +318,13 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     public function testTransactionWithException()
     {
         self::$connection->transaction(function() {
-            /*@TODO execute queries */
-            self::$connection->run([
-                'statement'     => new Statements\Delete(self::$users->name),
-                'where'         => new Statements\Where(['email' => 'user2@test.com'])
-            ]);
+            $stmt = new Statements\Delete(self::$users);
+            list($sql, $params) = $stmt->where(['email' => 'user2@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
 
-            self::$connection->run([
-                'statement'     => new Statements\Update(self::$users->name, ['email' => '']),
-                'where'         => new Statements\Where(['email' => 'user5@test.com'])
-            ]);
+            $stmt = new Statements\Update(self::$users->getPartial(['email']), ['email' => null]);
+            list($sql, $params) = $stmt->where(['email' => 'user5@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
         });
 
         $queryTable = $this->getConnection()->createQueryTable(
@@ -299,18 +352,14 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     public function testNestedTransactions()
     {
         self::$connection->transaction(function() {
-            /*@TODO execute queries */
-            self::$connection->run([
-                'statement'     => new Statements\Delete(self::$users->name),
-                'where'         => new Statements\Where(['email' => 'user2@test.com'])
-            ]);
+            $stmt = new Statements\Delete(self::$users);
+            list($sql, $params) = $stmt->where(['email' => 'user2@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
 
             self::$connection->transaction(function() {
-                /*@TODO execute queries */
-                self::$connection->run([
-                    'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
-                    'where'         => new Statements\Where(['email' => 'user5@test.com']),
-                ]);
+                $stmt = new Statements\Update(self::$users->getPartial(['email']), ['email' => 'user5updated@test.com']);
+                list($sql, $params) = $stmt->where(['email' => 'user5@test.com'])->toSql();
+                self::$connection->execute($sql, $params);
             });
         });
 
@@ -333,19 +382,15 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     public function testRollback()
     {
         self::$connection->transaction(function() {
-            /*@TODO execute queries */
-
-            self::$connection->run([
-                'statement'     => new Statements\Delete(self::$users->name),
-                'where'         => new Statements\Where(['email' => 'user2@test.com'])
-            ]);
+            $stmt = new Statements\Delete(self::$users);
+            list($sql, $params) = $stmt->where(['email' => 'user2@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
 
             self::$connection->rollback();
 
-            self::$connection->run([
-                'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
-                'where'         => new Statements\Where(['email' => 'user5@test.com']),
-            ]);
+            $stmt = new Statements\Update(self::$users->getPartial(['email']), ['email' => 'user5updated@test.com']);
+            list($sql, $params) = $stmt->where(['email' => 'user5@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
         });
 
         $queryTable = $this->getConnection()->createQueryTable(
@@ -373,18 +418,14 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
     public function testNestedRollback()
     {
         self::$connection->transaction(function() {
-            /*@TODO execute queries */
-            self::$connection->run([
-                'statement'     => new Statements\Delete(self::$users->name),
-                'where'         => new Statements\Where(['email' => 'user2@test.com'])
-            ]);
+            $stmt = new Statements\Delete(self::$users);
+            list($sql, $params) = $stmt->where(['email' => 'user2@test.com'])->toSql();
+            self::$connection->execute($sql, $params);
 
             self::$connection->transaction(function() {
-                /*@TODO execute queries */
-                self::$connection->run([
-                    'statement'     => new Statements\Update(self::$users->name, ['email' => 'user5updated@test.com']),
-                    'where'         => new Statements\Where(['email' => 'user5@test.com']),
-                ]);
+                $stmt = new Statements\Update(self::$users->getPartial(['email']), ['email' => 'user5updated@test.com']);
+                list($sql, $params) = $stmt->where(['email' => 'user5@test.com'])->toSql();
+                self::$connection->execute($sql, $params);
 
                 self::$connection->rollback();
             });

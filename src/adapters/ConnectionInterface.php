@@ -11,6 +11,8 @@
 
 namespace Zob\Adapters;
 
+use Zob\Objects;
+
 /**
  * Database connection interface.
  */
@@ -18,7 +20,7 @@ interface ConnectionInterface
 {
     public function databaseExists($name);
 
-    public function createDatabase(DatabaseInterface $database);
+    public function createDatabase(Objects\DatabaseInterface $database);
 
     public function deleteDatabase($database);
 
@@ -26,17 +28,17 @@ interface ConnectionInterface
 
     public function getTable($table);
 
-    public function createTable(TableInterface $table);
+    public function createTable(Objects\TableInterface $table);
 
     public function deleteTable($table);
 
-    public function createField(FieldInterface $field, $table);
+    public function createField(Objects\FieldInterface $field, $table);
 
-    public function changeField($table, $fieldName, FieldInterface $field);
+    public function changeField($table, $fieldName, Objects\FieldInterface $field);
 
     public function deleteField($field, $table);
 
-    public function createIndex(IndexInterface $index, $table);
+    public function createIndex(Objects\IndexInterface $index, $table);
 
     public function deleteIndex($index, $table);
 

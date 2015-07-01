@@ -11,6 +11,9 @@
 
 namespace Zob\Adapters;
 
+use Zob\Objects;
+use Zob\QueryInterface;
+
 /**
  * SQL Helper class
  */
@@ -41,7 +44,7 @@ class SqlHelper
      */
     public function createDatabase($database)
     {
-        return "CREATE database {$database->getName()} CHARACTER SET = {$database->getCharSet()} COLLATE = {$database->getCollation()}";
+        return "CREATE database {$database->getName()} CHARACTER SET = {$database->getCharacterSet()} COLLATE = {$database->getCollation()}";
     }
 
     /**
@@ -95,7 +98,7 @@ class SqlHelper
      *
      * @return string
      */
-    public function createTable(TableInterface $table)
+    public function createTable(Objects\TableInterface $table)
     {
         $fields = implode(',', array_map(function($item) { return $this->buildField($item); }, $table->getFields()));
 
@@ -126,7 +129,7 @@ class SqlHelper
      *
      * @return string
      */
-    public function createField(FieldInterface $field, $table)
+    public function createField(Objects\FieldInterface $field, $table)
     {
         $fieldSql = $this->buildField($field);
 
@@ -144,7 +147,7 @@ class SqlHelper
      *
      * @return string
      */
-    public function changeField($table, $fieldName, FieldInterface $field)
+    public function changeField($table, $fieldName, Objects\FieldInterface $field)
     {
         $fieldSql = $this->buildField($field);
 
@@ -190,7 +193,7 @@ class SqlHelper
      *
      * @return string
      */
-    public function createIndex(IndexInterface $index, $table)
+    public function createIndex(Objects\IndexInterface $index, $table)
     {
         $indexSql = $this->buildIndex($index);
 
@@ -221,7 +224,7 @@ class SqlHelper
      *
      * @return string
      */
-    private function buildField(FieldInterface $field)
+    private function buildField(Objects\FieldInterface $field)
     {
         $p = [$field->getName()];
 
@@ -252,7 +255,7 @@ class SqlHelper
      *
      * @return string
      */
-    private function buildIndex(IndexInterface $index)
+    private function buildIndex(Objects\IndexInterface $index)
     {
         $p = [$index->getName()];
         $p[] = "USING {$index->getType()}";

@@ -11,6 +11,7 @@
 namespace Zob\Adapters;
 
 use Zob\Objects;
+use Zob\QueryInterface;
 
 class Connection implements ConnectionInterface
 {
@@ -18,9 +19,9 @@ class Connection implements ConnectionInterface
      * Database connection instance
      *
      * @var object
-     * @access private
+     * @access protected
      */
-    private $conn;
+    protected $conn;
 
     /**
      * SqlHelper instance
@@ -51,6 +52,13 @@ class Connection implements ConnectionInterface
         $this->sqlHelper = new SqlHelper();
     }
 
+    public function run(QueryInterface $query)
+    {
+        $query->prepare();
+
+        return $this->query($query->sql, $query->params);      
+    }
+
     /**
      * Executes a SQL statement and returns a bool status or data array
      * Throws an LogicException if there was na error
@@ -64,7 +72,7 @@ class Connection implements ConnectionInterface
      */
     public function query($sql, $params = [])
     {
-        $stmt = $this->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
 
         if(!empty($params)) {
             foreach($params as $i=>$v) {
@@ -101,7 +109,7 @@ class Connection implements ConnectionInterface
      */
     public function execute($sql, $params = [])
     {
-        $stmt = $this->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
 
         if(!empty($params)) {
             foreach($params as $i=>$v) {
@@ -129,7 +137,7 @@ class Connection implements ConnectionInterface
      */
     public function databaseExists($database)
     {
-        return $this->query($this->sqlHelper->databaseExists($database))->rowCount() > 0;
+        return $this->conn->query($this->sqlHelper->databaseExists($database))->rowCount() > 0;
     }
 
     /**
@@ -143,7 +151,7 @@ class Connection implements ConnectionInterface
      */
     public function createDatabase(Objects\DatabaseInterface $database)
     {
-        return $this->execute($this->sqlHelper->createDatabase($databaseName));
+        return $this->execute($this->sqlHelper->createDatabase($database));
     }
 
     /**
@@ -179,7 +187,7 @@ class Connection implements ConnectionInterface
             $table = $table->getName();
         }
 
-        return $this->query($this->sqlHelper->tableExists($table))->rowCount() > 0;
+        return $this->conn->query($this->sqlHelper->tableExists($table))->rowCount() > 0;
     }
 
     /**
@@ -198,15 +206,26 @@ class Connection implements ConnectionInterface
 
         $fields = array_map(function($item) {
             preg_match('/(\w+)\((\d+)\)/', $item['Type'], $type);
-            return new Objects\Field([
+            $params = [
                 'name'      => $item['Field'],
-                'type'      => $type[1],
-                'length'    => $type[2],
                 'required'  => $item['Null'] == 'NO',
                 'default'   => $item['Default'],
                 'pk'        => !!($item['Key'] == 'PRI'),
                 'ai'        => !!($item['Extra'] == 'auto_increment')
-            ]);
+            ];
+            
+            if(empty($type)) {
+                $params['type'] = $item['Type'];
+            } else {
+                $params['type']   = $type[1];
+                $params['length'] = $type[2];
+            }
+
+            if($params['required'] && $params['pk'] && $params['ai']) {
+                $params['required'] = false;
+            }
+
+            return new Objects\Field($params);
         }, $fields);
 
         $indexes = array_map(function($item) {
@@ -282,7 +301,7 @@ class Connection implements ConnectionInterface
      */
     public function changeField($table, $fieldName, Objects\FieldInterface $field)
     {
-        return $this->execute($this->sqlHelper->changeField($tableName, $fieldName, $field));
+        return $this->execute($this->sqlHelper->changeField($table, $fieldName, $field));
     }
 
     /**

@@ -11,11 +11,17 @@
 
 namespace Zob\Adapters\MySql\Statements;
 
+use Zob\Objects\TableInterface;
+
 /**
  * Delete statement class
  */
 class Delete
 {
+    use WhereTrait;
+    use OrderTrait;
+    use LimitTrait;
+
     /**
      * Table name
      *
@@ -36,12 +42,12 @@ class Delete
     /**
      * Basic constructor
      *
-     * @param string $table Table name
+     * @param TableInterface $table Table object
      * @param bool $ignore Ignore errors
      *
      * @access public
      */
-    function __construct($table, $ignore = false)
+    function __construct(TableInterface $table, $ignore = false)
     {
         $this->table = $table;
         $this->ignore = $ignore;
@@ -57,14 +63,23 @@ class Delete
     public function toSql()
     {
         $r = ['DELETE'];
+        $vars = [];
 
         if($this->ignore) {
             $r[] = 'IGNORE';
         }
 
-        $r[] = "FROM {$this->table}";
+        $r[] = "FROM {$this->table->getName()}";
 
-        return [implode(' ', $r), []];
+        foreach (['where', 'order', 'limit'] as $clause) {
+            if ($this->{$clause}) {
+                list($s, $p) = $this->{$clause}->toSql();
+                $r[] = $s;
+                $vars = array_merge($vars, $p);
+            }
+        }
+
+        return [implode(' ', $r), $vars];
     }
 }
 
