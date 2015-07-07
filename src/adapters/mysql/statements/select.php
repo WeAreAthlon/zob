@@ -13,6 +13,8 @@ namespace Zob\Adapters\MySql\Statements;
 
 use Zob\Adapters\StatementInterface;
 use Zob\Objects\TableInterface;
+use Zob\Objects\FieldInterface;
+use Zob\Objects\Condition;
 use Zob\Helpers\Sql;
 
 /**
@@ -75,15 +77,20 @@ class Select implements StatementInterface
 
         $fields = [];
         foreach ($this->table->getFields() as $field) {
-            $fields[] = "{$this->table->getName()}.{$field->getName()}";
+            $fieldName = "{$field->getTable()->getName()}.{$field->getName()}";
+
+            if ($field->getAlias()) {
+                $fieldName .= " AS {$field->getAlias()}";
+            }
+            $fields[] = $fieldName;
         }
 
         $r[] = implode(', ', $fields);
         $r[] = "FROM {$this->table->getName()}";
 
-        foreach ($this->table->getJoins() as $join) {
-            $r[] = "{$join->type} JOIN {$join->table->getName()} ON ({parseConditions($join->getConditions())})";
-        }
+        $join = [];
+        $this->joinTable($this->table, $join);
+        $r = array_merge($r, $join);
 
         foreach (['where', 'order', 'limit'] as $clause) {
             if ($this->{$clause}) {
@@ -92,6 +99,40 @@ class Select implements StatementInterface
         }
 
         return [implode(' ', $r), []];
+    }
+
+    private function joinTable(TableInterface $table, array &$result)
+    {
+        if ($table->getJoin()) {
+            $join = $table->getJoin();
+            $condition = $this->parseJoinCondition($join->getConditions());
+            $result[] = "{$join->getType()} JOIN {$table->getForeignTable()->getName()} ON ({$condition})";
+
+            $this->joinTable($table->getTable(), $result);
+            $this->joinTable($table->getForeignTable(), $result);
+        }
+    }
+
+    private function parseJoinCondition(array $conditions)
+    {
+        $r = [];
+
+        foreach ($conditions as $condition) {
+            if ($condition instanceof Condition) {
+                $field = $condition->getField();
+                $value = $condition->getValue();
+
+                if ($value instanceof FieldInterface) {
+                    $value = "{$value->getTable()->getName()}.{$value->getName()}";
+                }
+
+                $r[] = "{$field->getTable()->getName()}.{$field->getName()} {$condition->getOperator()} {$value}";
+            } else {
+                $r[] = $condition;
+            }
+        }
+
+        return implode(' AND ', $r);
     }
 }
 

@@ -44,12 +44,14 @@
     </table>
     <table name="tasks">
         <column>id</column>
+        <column>name</column>
         <column>title</column>
         <column>user_id</column>
         <column>description</column>
         <column>created_at</column>
         <row>
             <value>1</value>
+            <value>Task1</value>
             <value>Task1</value>
             <value>1</value>
             <value>Description1</value>
@@ -58,12 +60,14 @@
         <row>
             <value>2</value>
             <value>Task2</value>
+            <value>Task2</value>
             <value>1</value>
             <value>Description2</value>
             <value>2015-02-24 17:15:23</value>
         </row>
         <row>
             <value>3</value>
+            <value>Task3</value>
             <value>Task3</value>
             <value>1</value>
             <value>Description3</value>
@@ -72,6 +76,7 @@
         <row>
             <value>4</value>
             <value>Task4</value>
+            <value>Task4</value>
             <value>2</value>
             <value>Description4</value>
             <value>2015-02-24 17:15:23</value>
@@ -79,12 +84,14 @@
         <row>
             <value>5</value>
             <value>Task5</value>
+            <value>Task5</value>
             <value>2</value>
             <value>Description5</value>
             <value>2015-02-24 17:15:23</value>
         </row>
         <row>
             <value>6</value>
+            <value>Task6</value>
             <value>Task6</value>
             <value>4</value>
             <value>Description6</value>

@@ -1,7 +1,10 @@
 <?php
+
 use Zob\Objects\Table;
 use Zob\Objects\Field;
 use Zob\Objects\Index;
+use Zob\Objects\LeftJoin;
+use Zob\Objects\Condition;
 
 /**
  * @covers Zob\Objects\Table
@@ -98,6 +101,56 @@ class TableTest extends PHPUnit_Framework_TestCase
     {
         $this->assertTrue(self::$table->removeIndex('name_idx'));
         $this->assertFalse(self::$table->removeIndex('name_idx_2'));
+    }
+
+    /**
+     * @covers Zob\Objects\Table::removeIndex
+     * @depends testAddIndex
+     */
+    public function testGetPartial()
+    {
+        $parital = self::$table->getPartial(['name' => 'tttt', 'description']);
+    }
+
+    /**
+     * @covers Zob\Objects\Table::testJoin
+     */
+    public function testJoin()
+    {
+        $tasks = new Table('tasks', [
+            new Field([
+                'name' => 'id',
+                'type' => 'int',
+                'length' => 10,
+                'pk'    => true,
+                'ai'    => true
+            ]),
+            new Field([
+                'name' => 'title',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Field([
+                'name' => 'user_id',
+                'type' => 'int',
+                'length' => 10,
+                'required' => true
+            ]),
+            new Field([
+                'name' => 'description',
+                'type' => 'text'
+            ]),
+            new Field([
+                'name' => 'created_at',
+                'type' => 'datetime'
+            ])
+        ]);
+
+        self::$table->join($tasks, [new Condition(self::$table->getField('id'), '=', $tasks->getField('user_id'))], 'left');
+        $conditions = [new Condition(self::$table->getField('id'), '=', $tasks->getField('user_id'))];
+        $join = new LeftJoin($conditions);
+        
+        $this->assertEquals($conditions, $join->getConditions());
     }
 }
 

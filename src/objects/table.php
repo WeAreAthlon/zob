@@ -17,6 +17,7 @@ class Table implements TableInterface
         $this->name = $name;
         foreach ($fields as $field) {
             $this->fields[$field->getName()] = $field;
+            $field->setTable($this);
         }
 
         foreach ($indexes as $index) {
@@ -40,7 +41,7 @@ class Table implements TableInterface
 
     public function getFields()
     {
-        return $this->fields;
+        return array_values($this->fields);
     }
 
     public function getIndex($indexName)
@@ -71,6 +72,7 @@ class Table implements TableInterface
     public function addField(FieldInterface $field)
     {
         $this->fields[$field->getName()] = $field;
+        $field->setTable($this);
     }
 
     public function removeField($name)
@@ -104,9 +106,15 @@ class Table implements TableInterface
     {
         $partialTable = new PartialTable($this->name);
 
-        foreach ($fields as $fieldName) {
+        foreach ($fields as $key=>$fieldName) {
             if($this->getField($fieldName)) {
-                $partialTable->addField($this->getField($fieldName));
+                $field = clone $this->getField($fieldName);
+
+                if (is_string($key)) {
+                    $field->setAlias($key);
+                }
+
+                $partialTable->addField($field);
             }
         }
 
@@ -115,16 +123,16 @@ class Table implements TableInterface
 
     public function join(TableInterface $table, $conditions, $type)
     {
-        $this->joins[] = [
-            'table'      => $table->getName(),
-            'type'       => $type,
-            'conditions' => $conditions
-        ];
+        switch($type) {
+            case 'left': $join = new LeftJoin($conditions); break;
+        }
+
+        return new ComputedTable($this, $table, $join);
     }
 
-    public function getJoins()
+    public function getJoin()
     {
-        return $this->joins;
+        return null;
     }
 }
 

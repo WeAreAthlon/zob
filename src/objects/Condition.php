@@ -16,14 +16,20 @@ class Condition
         $this->operator = $operator;
         $this->value = $value;
     }
-    
-    public function get()
+
+    public function getField()
     {
-        return [
-            'field'     => $this->field,
-            'operator'  => $this->operator,
-            'value'     => $this->value
-        ];
+        return $this->field;
+    }
+
+    public function getOperator()
+    {
+        return $this->operator;
+    }
+
+    public function getValue()
+    {
+        return $this->value;
     }
 }
 

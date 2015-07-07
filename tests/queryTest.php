@@ -66,6 +66,11 @@ class QueryTest extends PHPUnit_Extensions_Database_TestCase
                 'ai'    => true
             ]),
             new Field([
+                'name' => 'name',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Field([
                 'name' => 'title',
                 'type' => 'varchar',
                 'length' => 255

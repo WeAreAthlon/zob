@@ -56,7 +56,7 @@ class Connection implements ConnectionInterface
     {
         $query->prepare();
 
-        return $this->query($query->sql, $query->params);      
+        return $this->query($query->sql, $query->params);
     }
 
     /**
@@ -213,7 +213,7 @@ class Connection implements ConnectionInterface
                 'pk'        => !!($item['Key'] == 'PRI'),
                 'ai'        => !!($item['Extra'] == 'auto_increment')
             ];
-            
+
             if(empty($type)) {
                 $params['type'] = $item['Type'];
             } else {

@@ -68,6 +68,11 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
                 'ai'    => true
             ]),
             new Field([
+                'name' => 'name',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Field([
                 'name' => 'title',
                 'type' => 'varchar',
                 'length' => 255
@@ -216,6 +221,7 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
         self::$connection->createField($field, 'users');
 
         $table = self::$connection->getTable('users');
+        $field->setTable($table);
 
         $this->assertEquals($field, $table->getField('created_field'));
     }
@@ -235,6 +241,7 @@ class MysqlTest extends PHPUnit_Extensions_Database_TestCase
         self::$connection->changeField('users', 'created_field', $field);
 
         $table = self::$connection->getTable('users');
+        $field->setTable($table);
 
         $this->assertFalse($table->getField('created_field'));
         $this->assertEquals($field, $table->getField('created_field_changed'));

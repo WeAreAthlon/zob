@@ -2,62 +2,58 @@
 
 namespace Zob\Objects;
 
-class ComputedTable
+class ComputedTable implements TableInterface
 {
-    private $tables = [];
+    private $table;
 
-    private $joins;
+    private $foreignTable;
 
-    public function __construct(array $tables, array $joins = [])
+    private $join;
+
+    public function __construct(TableInterface $table, TableInterface $foreignTable, $join)
     {
-        foreach ($tables as $table) {
-            $this->tables[$table->getName()] = $table;
-        }
-
-        $this->joins = $joins;
+        $this->table = $table;
+        $this->foreignTable = $foreignTable;
+        $this->join = $join;
     }
 
     public function getName()
     {
-        if(empty($this->joins)) {
-            return implode(', ', array_keys($this->tables));
-        }
+        return $this->table->getName();
+    }
 
-        return $this->tables[0]->getName();
+    public function getTable()
+    {
+        return $this->table;
+    }
+
+    public function getForeignTable()
+    {
+        return $this->foreignTable;
     }
 
     public function getFields()
     {
-        $r = [];
-        foreach ($this->tables as $table) {
-            $r = array_merge($r, $table->getFields());
-        }
-
-        return $r;
+        return array_merge($this->table->getFields(), $this->foreignTable->getFields());
     }
 
-    public function getTable($tableName)
+    public function getField($field)
     {
-        return $this->tables[$tableName];
-    }
-
-    public function addTable(TableInterface $table)
-    {
-        $this->tables[$table->getName()] = $table;
+        return false;
     }
 
     public function join(TableInterface $table, $conditions, $type)
     {
-        $this->joins[] = [
-            'table'      => $table->getName(),
-            'type'       => $type,
-            'conditions' => $conditions
-        ];
+        switch($type) {
+            case 'left': $join = new LeftJoin($conditions); break;
+        }
+
+        return new ComputedTable($this, $table, $join);
     }
 
-    public function getJoins()
+    public function getJoin()
     {
-        return $this->joins;
+        return $this->join;
     }
 }
 

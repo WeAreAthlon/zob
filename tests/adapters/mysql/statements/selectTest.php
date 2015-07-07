@@ -11,6 +11,8 @@ class SelectTest extends PHPUnit_Framework_TestCase
 {
     protected static $users;
 
+    protected static $tasks;
+
     public static function setUpBeforeClass()
     {
         self::$users = new Objects\Table('users', [
@@ -31,6 +33,35 @@ class SelectTest extends PHPUnit_Framework_TestCase
                 'type' => 'varchar',
                 'length' => 255,
                 'required' => true
+            ]),
+            new Objects\Field([
+                'name' => 'created_at',
+                'type' => 'datetime'
+            ])
+        ]);
+
+        self::$tasks = new Objects\Table('tasks', [
+            new Objects\Field([
+                'name' => 'id',
+                'type' => 'int',
+                'length' => 10,
+                'pk'    => true,
+                'ai'    => true
+            ]),
+            new Objects\Field([
+                'name' => 'title',
+                'type' => 'varchar',
+                'length' => 255
+            ]),
+            new Objects\Field([
+                'name' => 'user_id',
+                'type' => 'int',
+                'length' => 10,
+                'required' => true
+            ]),
+            new Objects\Field([
+                'name' => 'description',
+                'type' => 'text'
             ]),
             new Objects\Field([
                 'name' => 'created_at',
@@ -66,6 +97,30 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $select = new Select(self::$users);
         list($sql) = $select->toSql();
         $this->assertEquals('SELECT users.id, users.name, users.email, users.created_at FROM users', $sql);
+    }
+
+    /**
+     * @covers Zob\Adapters\MySql\Statements\Select::toSql
+     */
+    public function testToSqlWithJoin()
+    {
+        $table = self::$users->join(self::$tasks->getPartial(['title', 'user_id', 'description']), [new Objects\Condition(self::$users->getField('id'), '=', self::$tasks->getField('user_id'))], 'left');
+        $select = new Select($table);
+
+        list($sql) = $select->toSql();
+        $this->assertEquals('SELECT users.id, users.name, users.email, users.created_at, tasks.title, tasks.user_id, tasks.description FROM users LEFT JOIN tasks ON (users.id = tasks.user_id)', $sql);
+
+        $table = self::$users->join(self::$tasks->getPartial(['tasks_id' => 'id' ,'title', 'user_id', 'description']), [new Objects\Condition(self::$users->getField('id'), '=', self::$tasks->getField('user_id'))], 'left');
+        $select = new Select($table);
+
+        list($sql) = $select->toSql();
+        $this->assertEquals('SELECT users.id, users.name, users.email, users.created_at, tasks.id AS tasks_id, tasks.title, tasks.user_id, tasks.description FROM users LEFT JOIN tasks ON (users.id = tasks.user_id)', $sql);
+
+        $table = self::$users->getPartial(['name', 'email'])->join(self::$tasks->getPartial(['tasks_id' => 'id' ,'title', 'user_id', 'description']), [new Objects\Condition(self::$users->getField('id'), '=', self::$tasks->getField('user_id'))], 'left');
+        $select = new Select($table);
+
+        list($sql) = $select->toSql();
+        $this->assertEquals('SELECT users.name, users.email, tasks.id AS tasks_id, tasks.title, tasks.user_id, tasks.description FROM users LEFT JOIN tasks ON (users.id = tasks.user_id)', $sql);
     }
 
     /**

@@ -4,6 +4,14 @@ namespace Zob\Objects;
 
 interface FieldInterface
 {
+    public function setTable(TableInterface $table);
+
+    public function getTable();
+
+    public function setAlias($alias);
+
+    public function getAlias();
+
     public function getName();
 
     public function getType();

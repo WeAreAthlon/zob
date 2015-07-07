@@ -16,6 +16,16 @@ namespace Zob\Objects;
  */
 class Field implements FieldInterface
 {
+    protected $table;
+
+    /**
+     * Field alias
+     *
+     * @var string
+     * @access protected
+     */
+
+    protected $alias;
     /**
      * Field name
      *
@@ -91,6 +101,26 @@ class Field implements FieldInterface
         if($this->pk && !$this->ai) {
             $this->required = true;
         }
+    }
+
+    public function setTable(TableInterface $table)
+    {
+        $this->table = $table;
+    }
+
+    public function getTable()
+    {
+        return $this->table;
+    }
+
+    public function setAlias($alias)
+    {
+        $this->alias = $alias;
+    }
+
+    public function getAlias()
+    {
+        return $this->alias;
     }
 
     public function getName()
