@@ -10,7 +10,7 @@ interface TableInterface
 
     public function getFields();
 
-    public function join(TableInterface $table, $conditions, $type);
+    public function join(TableInterface $table, array $conditions, $type);
 
     public function getJoin();
 }
