@@ -1,6 +1,6 @@
 # zob
 
-PHP Database ORM engine on steroids.
+PHP Database management layer on steroids.
 
 ## Requirements
 
