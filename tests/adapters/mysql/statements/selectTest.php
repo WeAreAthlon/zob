@@ -124,6 +124,18 @@ class SelectTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers Zob\Adapters\MySql\Statements\Select::toSql
+     */
+    public function testToSqlWithJoinConditions()
+    {
+        $table = self::$users->join(self::$tasks->getPartial(['title', 'user_id', 'description']), [new Objects\Condition('users.id', '=', self::$tasks->getField('user_id'))], 'left');
+        $select = new Select($table);
+
+        list($sql) = $select->toSql();
+        $this->assertEquals('SELECT users.id, users.name, users.email, users.created_at, tasks.title, tasks.user_id, tasks.description FROM users LEFT JOIN tasks ON (users.id = tasks.user_id)', $sql);
+    }
+
+    /**
      * @covers Zob\Adapters\MySql\Statements\Select::uniq
      */
     public function testUniq()

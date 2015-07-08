@@ -126,7 +126,11 @@ class Select implements StatementInterface
                     $value = "{$value->getTable()->getName()}.{$value->getName()}";
                 }
 
-                $r[] = "{$field->getTable()->getName()}.{$field->getName()} {$condition->getOperator()} {$value}";
+                if ($field instanceof FieldInterface) {
+                    $field = "{$field->getTable()->getName()}.{$field->getName()}";
+                }
+
+                $r[] = "{$field} {$condition->getOperator()} {$value}";
             } else {
                 $r[] = $condition;
             }

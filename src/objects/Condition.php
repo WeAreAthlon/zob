@@ -10,7 +10,7 @@ class Condition
 
     private $value;
 
-    public function __construct(FieldInterface $field, $operator, $value)
+    public function __construct($field, $operator, $value)
     {
         $this->field = $field;
         $this->operator = $operator;

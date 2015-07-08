@@ -240,7 +240,7 @@ class Table implements TableInterface
      *
      * @return ConputedTable
      */
-    public function join(TableInterface $table, $conditions, $type)
+    public function join(TableInterface $table, array $conditions, $type)
     {
         switch($type) {
             case 'left': $join = new LeftJoin($conditions); break;
