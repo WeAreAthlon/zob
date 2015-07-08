@@ -165,14 +165,19 @@ class Field implements FieldInterface
      *
      * @access public
      *
-     * @return array
+     * @return false/string
      */
     public function validate($value)
     {
-        $errors = [];
-        /*@TODO write validation code */
+        if ($this->required && strlen(trim($value)) === 0) {
+            return 'NotEmpty';
+        }
 
-        return $errors;
+        if (strlen($value) > $this->length) {
+            return 'TooLong';
+        }
+        
+        return false;
     }
 }
 

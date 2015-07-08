@@ -81,6 +81,18 @@ class FieldTest extends PHPUnit_Framework_TestCase
      */
     public function testValidate()
     {
+        $this->assertFalse(self::$field->validate(123123));
+        $this->assertFalse(self::$field->validate(null));
+        $this->assertEquals('TooLong', self::$field->validate(123123123123123));
+
+        $field = new Field([
+            'name' => 'title',
+            'type' => 'varchar',
+            'length' => 10,
+            'required' => true
+        ]);
+
+        $this->assertEquals('NotEmpty', $field->validate(null));
     }
 }
 
