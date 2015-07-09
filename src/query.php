@@ -23,23 +23,23 @@ class Query implements QueryInterface
         return $this->statement;
     }
 
-    public function insert(TableInterface $table)
+    public function insert(TableInterface $table, array $values = [])
     {
-        $this->statement = $this->insertFactory->create($table);
+        $this->statement = $this->connection->insertFactory->create($table, $values);
 
         return $this->statement;
     }
 
-    public function update(TableInterface $table)
+    public function update(TableInterface $table, array $values = [])
     {
-        $this->statement = $this->updateFactory->create($table);
+        $this->statement = $this->connection->updateFactory->create($table, $values);
 
         return $this->statement;
     }
 
     public function delete(TableInterface $table)
     {
-        $this->statement = $this->deleteFactory->create($table);
+        $this->statement = $this->connection->deleteFactory->create($table);
 
         return $this->statement;
     }

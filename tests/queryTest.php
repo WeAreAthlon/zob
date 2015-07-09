@@ -120,6 +120,9 @@ class QueryTest extends PHPUnit_Extensions_Database_TestCase
         $this->query = new Query(self::$connection);
     }
 
+    /**
+     * @covers Zob\Query::select
+     */
     public function testSelect()
     {
         $this->query->select(self::$users);
@@ -129,6 +132,25 @@ class QueryTest extends PHPUnit_Extensions_Database_TestCase
         );
 
         $this->assertEquals($this->query->run(), $this->getTableRows($queryTable));
+    }
+
+    /**
+     * @covers Zob\Query::insert
+     */
+    public function testInsert()
+    {
+        $this->query->insert(self::$users, [
+            'name' => 'test name',
+            'email' => 'test email'
+        ]);
+
+        $queryTable = $this->getConnection()->createQueryTable(
+            'users', "SELECT * FROM users WHERE name = 'test name'"
+        );
+        $this->query->run();
+
+        $this->assertEquals('test name', $this->getTableRows($queryTable)[0]['name']);
+        $this->assertEquals('test email', $this->getTableRows($queryTable)[0]['email']);
     }
 }
 
