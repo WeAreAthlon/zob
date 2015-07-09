@@ -184,8 +184,12 @@ class Field implements FieldInterface
         return false;
     }
 
-    public function beforeWrite($value) {}
+    public function beforeWrite($value) {
+        return $value;
+    }
 
-    public function afterRead($value) {}
+    public function afterRead($value) {
+        return $value;
+    }
 }
 
