@@ -19,4 +19,8 @@ interface FieldInterface
     public function getLength();
 
     public function validate($value);
+
+    public function beforeWrite($value);
+
+    public function afterRead($value);
 }

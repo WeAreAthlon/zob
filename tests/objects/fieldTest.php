@@ -1,4 +1,5 @@
 <?php
+
 use Zob\Objects\Field;
 
 /**
@@ -83,7 +84,7 @@ class FieldTest extends PHPUnit_Framework_TestCase
     {
         $this->assertFalse(self::$field->validate(123123));
         $this->assertFalse(self::$field->validate(null));
-        $this->assertEquals('TooLong', self::$field->validate(123123123123123));
+        $this->assertFalse(self::$field->validate(123123123123123));
 
         $field = new Field([
             'name' => 'title',
@@ -93,6 +94,7 @@ class FieldTest extends PHPUnit_Framework_TestCase
         ]);
 
         $this->assertEquals('NotEmpty', $field->validate(null));
+        $this->assertEquals('TooLong', $field->validate(123123123123));
     }
 }
 

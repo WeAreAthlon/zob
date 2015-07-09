@@ -169,6 +169,10 @@ class Field implements FieldInterface
      */
     public function validate($value)
     {
+        if ($this->ai) {
+            return false;
+        }
+
         if ($this->required && strlen(trim($value)) === 0) {
             return 'NotEmpty';
         }
@@ -179,5 +183,9 @@ class Field implements FieldInterface
         
         return false;
     }
+
+    public function beforeWrite($value) {}
+
+    public function afterRead($value) {}
 }
 
