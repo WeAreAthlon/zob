@@ -1,32 +1,15 @@
 {
-    "name": "weareathlon/zob",
-    "description": "ORM on steroids",
-    "keywords": ["orm", "silla.io"],
-    "homepage": "https://github.com/WeAreAthlon/zob",
-    "license": "GPL-3.0",
+    "name": "athlon/zob",
+    "description": "ORM",
+    "type": "library",
     "authors": [
         {
-            "name": "Kalin Stefanov",
-            "email": "kalin@athlonsofia.com",
-            "role": "Developer"
+            "name": "kalin.stefanov",
+            "email": "stefanov.kalin@gmail.com"
         }
     ],
-    "support": {
-        "source": "https://github.com/WeAreAthlon/zob",
-        "issues": "https://github.com/WeAreAthlon/zob/issues",
-        "wiki": "https://github.com/WeAreAthlon/zob/wiki"
-    },
-    "require": {
-        "php"                   : ">=5.4.0",
-        "ext-PDO"               : "*"
-    },
-    "require-dev": {
-        "phpunit/phpunit"   : "4.3.*",
-        "phpunit/dbunit"    : ">=1.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "Zob\\": "src/"
-        }
-    }
+	"autolaod": {
+		"psr-4": {"Zob\\": "src/"}
+	},
+    "require": {}
 }
