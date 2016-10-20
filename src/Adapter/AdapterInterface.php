@@ -4,7 +4,7 @@ namespace Zob\Adapter;
 
 /**
  * Interface AdapterInterface
- * @author kalin.stefanov@gmail.com
+ * @author stefanov.kalin@gmail.com
  */
 interface AdapterInterface
 {

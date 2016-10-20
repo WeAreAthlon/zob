@@ -3,31 +3,58 @@
 namespace Zob\Query;
 
 use Zob\Adapter\AdapterInterface;
+use Zob\Query\QueryResult;
 
 /**
  * Class Query
- * @author kalin.stefanov@gmail.com
+ * @author stefanov.kalin@gmail.com
  */
 class Query implements QueryInterface
 {
     private $adapter;
+    private $returnType;
 
     /**
      * @param AdapterInterface $adapter
      */
-    public function __construct(AdapterInterface $adapter)
+    public function __construct(AdapterInterface $adapter, $returnType = null)
     {
         $this->adapter = $adapter;
+        $this->returnType = $returnType;
     }
 
     /**
-     * Executes the query
+     * Filter records
      *
-     * @return void
+     * @return Query
      */
-    private function run()
+    public function where(array $params)
     {
-        $this->adapter->run($this);
+        $this->options['filter'] = array_merge($this->filter, $params);
+
+        return $this;
+    }
+
+    /**
+     * Sort records
+     *
+     * @return Query
+     */
+    public function order(string $field, string $by)
+    {
+        $this->options['order'] = [$field, $by];
+
+        return $this;
+    }
+
+    /**
+     * Executes the query and return a resultset
+     *
+     * @return QueryResult
+     */
+    public function get() : QueryResult
+    {
+        return new QueryResult($this->run(), $this->returnType);
     }
 
     /**
@@ -38,5 +65,15 @@ class Query implements QueryInterface
     public function getParams()
     {
         return null;
+    }
+
+    /**
+     * Executes the query
+     *
+     * @return void
+     */
+    private function run()
+    {
+        return $this->adapter->run($this);
     }
 }

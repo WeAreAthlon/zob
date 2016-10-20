@@ -6,7 +6,7 @@ use Zob\Adapter\AdapterInterface;
 
 /**
  * Class Model
- * @author kalin.stefanov@gmail.com
+ * @author stefanov.kalin@gmail.com
  */
 class Model
 {
@@ -37,6 +37,8 @@ class Model
      */
     public static function find($id)
     {
-        return null;
+        $query = new Query(static::$adapter);
+
+        return $query->where([static::$primaryField => $id])->get();
     }
 }

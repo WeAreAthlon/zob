@@ -4,7 +4,7 @@ namespace Zob\Query;
 
 /**
  * Interface QueryInterface
- * @author kalin.stefanov@gmail.com
+ * @author stefanov.kalin@gmail.com
  */
 interface QueryInterface
 {

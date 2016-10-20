@@ -8,11 +8,11 @@ use Zob\Query\QueryInterface;
 
 /**
  * Class Adapter
- * @author kalin.stefanov@gmail.com
+ * @author stefanov.kalin@gmail.com
  */
 class Adapter implements AdapterInterface
 {
-    private $schema;
+    private $schema = [];
 
     /**
      * @param mixed ConnectionInterface $connection
@@ -34,27 +34,18 @@ class Adapter implements AdapterInterface
     }
 
     /**
-     * Returns DB Schema
-     *
-     * @return void
-     */
-    public function getSchema()
-    {
-        $tables = $this->connection->query($this->builder->getSchema());
-    }
-
-    /**
      * Runs a Query
      *
-     * @return void
+     * @return array
      */
-    public function run(QueryInterface $query)
+    public function run(QueryInterface $query) : array
     {
-        $statement = $this->builder->build($query);
+        $statement = $this->builder->build($query, static::class);
 
-        $result = $this->connection->query($statement, $query->getParams());
-
-        return null;
+        return $this->connection->prepare(
+            $statement,
+            ...$query->getParams()
+        );
     }
 
     /**
@@ -62,8 +53,50 @@ class Adapter implements AdapterInterface
      *
      * @return void
      */
-    public function transaction(callabe $closure)
+    public function transaction(callable $closure)
     {
         return null;
+    }
+
+    /**
+     * Returns DB Schema
+     *
+     * @return void
+     */
+    private function retrieveSchema()
+    {
+        $schemaName = $this->connection->getSchemaName();
+        $schema = $this->connection->prepare(
+            $this->builder->getSchema(),
+            $schemaName
+        );
+
+        foreach ($schema as $tableName) {
+            $tableSchema = $this->connection->prepare(
+                $this->builder->getTableSchema(),
+                $tableName,
+                $schemaName
+            );
+
+            $this->schema[$tableName] = $this->normalizeFiled($tableSchema);
+        }
+    }
+
+    /**
+     * Normalize db field infromation
+     *
+     * @return array
+     */
+    private function normalizeField(array $schema) : array
+    {
+        return [
+            'name'              => $schema['COLUMN_NAME'],
+            'type'              => $schema['DATA_TYPE'],
+            'length'            => $schema['CHARACTER_MAXIMUM_LENGTH'],
+            'notNull'           => ($schema['IS_NULLABLE'] === 'NO') ? true : false,
+            'isPrimary'         => ($schema['COLUMN_KEY'] === 'PRI') ? true : false,
+            'isUnique'          => ($schema['COLUMN_KEY'] === 'UNI') ? true : false,
+            'isAutoIncrement'   => ($schema['EXTRA'] === 'auto_increment') ? true : false,
+        ];
     }
 }
