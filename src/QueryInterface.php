@@ -1,6 +1,6 @@
 <?php
 
-namespace Zob\Query;
+namespace Zob;
 
 /**
  * Interface QueryInterface

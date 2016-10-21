@@ -13,14 +13,25 @@ use Zob\Query\QueryInterface;
 class Adapter implements AdapterInterface
 {
     private $schema = [];
+    private $builder;
 
     /**
-     * @param mixed ConnectionInterface $connection
+     * @param ConnectionInterface $connection
      */
     public function __construct(ConnectionInterface $connection)
     {
         $this->connection = $connection;
-        $this->builder = new Builder();
+        $this->queryBuilder = new Builder();
+    }
+
+    /**
+     * Set builder instance
+     *
+     * @return void
+     */
+    public function setBuilder($builder)
+    {
+        $this->builder = $builder;
     }
 
     /**
@@ -34,13 +45,23 @@ class Adapter implements AdapterInterface
     }
 
     /**
+     * Returns database schema
+     *
+     * @return array
+     */
+    public function getSchema()
+    {
+        return $this->schema;
+    }
+
+    /**
      * Runs a Query
      *
      * @return array
      */
     public function run(QueryInterface $query) : array
     {
-        $statement = $this->builder->build($query, static::class);
+        $statement = $this->builder->build($query);
 
         return $this->connection->prepare(
             $statement,
@@ -63,8 +84,9 @@ class Adapter implements AdapterInterface
      *
      * @return void
      */
-    private function retrieveSchema()
+    public function retrieveSchema()
     {
+        $result = [];
         $schemaName = $this->connection->getSchemaName();
         $schema = $this->connection->prepare(
             $this->builder->getSchema(),
@@ -78,8 +100,10 @@ class Adapter implements AdapterInterface
                 $schemaName
             );
 
-            $this->schema[$tableName] = $this->normalizeFiled($tableSchema);
+            $result[$tableName] = $this->normalizeField($tableSchema);
         }
+
+        return $result;
     }
 
     /**

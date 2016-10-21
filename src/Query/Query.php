@@ -4,12 +4,13 @@ namespace Zob\Query;
 
 use Zob\Adapter\AdapterInterface;
 use Zob\Query\QueryResult;
+use Zob\QueryInterace;
 
 /**
  * Class Query
  * @author stefanov.kalin@gmail.com
  */
-class Query implements QueryInterface
+class Query implements QueryInterace
 {
     private $adapter;
     private $returnType;

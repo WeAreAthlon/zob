@@ -35,10 +35,10 @@ class Model
      *
      * @return void
      */
-    public static function find($id)
+    public static function find($key)
     {
         $query = new Query(static::$adapter);
 
-        return $query->where([static::$primaryField => $id])->get();
+        return $query->where([static::$primaryField => $key])->get();
     }
 }
