@@ -6,7 +6,7 @@ namespace Zob\Schema;
  * Class Field
  * @author stefanov.kalin@gmail.com
  */
-class Field
+abstract class Field implements FieldInterface
 {
     private $name;
     private $type;

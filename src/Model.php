@@ -3,6 +3,7 @@
 namespace Zob;
 
 use Zob\Adapter\AdapterInterface;
+use Zob\Schema\Schema;
 
 /**
  * Class Model
@@ -11,6 +12,8 @@ use Zob\Adapter\AdapterInterface;
 class Model
 {
     protected static $tableName;
+
+    protected static $schema;
 
     /**
      * @param mixed $dependencies
@@ -28,6 +31,24 @@ class Model
     public static function setAdapter(AdapterInterface $adapter)
     {
         static::$adapter = $adapter;
+    }
+
+    /**
+     * Returns model schema
+     *
+     * @return Schema
+     */
+    public static function getSchema() : Schema
+    {
+        if (!static::$schema) {
+            static::$schema = new Schema(
+                static::$adapter->getSchema(static::$tableName),
+                static::fields()
+            );
+        }
+
+        return static::$schema;  
+
     }
 
     /**

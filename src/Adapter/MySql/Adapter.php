@@ -45,16 +45,6 @@ class Adapter implements AdapterInterface
     }
 
     /**
-     * Returns database schema
-     *
-     * @return array
-     */
-    public function getSchema()
-    {
-        return $this->schema;
-    }
-
-    /**
      * Runs a Query
      *
      * @return array
@@ -80,30 +70,22 @@ class Adapter implements AdapterInterface
     }
 
     /**
-     * Returns DB Schema
+     * Returns table schema
      *
-     * @return void
+     * @param string $schemaName
+     *
+     * @return array
      */
-    public function retrieveSchema()
+    public function getSchema(string $schemaName)
     {
-        $result = [];
-        $schemaName = $this->connection->getSchemaName();
+        $dbName = $this->connection->getSchemaName();
         $schema = $this->connection->prepare(
-            $this->builder->getSchema(),
-            $schemaName
+            $this->builder->getTableSchema(),
+            $schemaName,
+            $dbName
         );
 
-        foreach ($schema as $tableName) {
-            $tableSchema = $this->connection->prepare(
-                $this->builder->getTableSchema(),
-                $tableName,
-                $schemaName
-            );
-
-            $result[$tableName] = $this->normalizeField($tableSchema);
-        }
-
-        return $result;
+        return array_map($this->normalizeField, $schema);
     }
 
     /**
@@ -113,12 +95,13 @@ class Adapter implements AdapterInterface
      */
     private function normalizeField(array $schema) : array
     {
+        /* @TODO translate the type value */
         return [
             'name'              => $schema['COLUMN_NAME'],
             'type'              => $schema['DATA_TYPE'],
             'length'            => $schema['CHARACTER_MAXIMUM_LENGTH'],
             'notNull'           => ($schema['IS_NULLABLE'] === 'NO') ? true : false,
-            'isPrimary'         => ($schema['COLUMN_KEY'] === 'PRI') ? true : false,
+            'isPrimaryKey'      => ($schema['COLUMN_KEY'] === 'PRI') ? true : false,
             'isUnique'          => ($schema['COLUMN_KEY'] === 'UNI') ? true : false,
             'isAutoIncrement'   => ($schema['EXTRA'] === 'auto_increment') ? true : false,
         ];
